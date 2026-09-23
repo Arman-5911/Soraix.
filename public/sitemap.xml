@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://localhost:5173/</loc></url>
+  <url><loc>http://localhost:5173/movies</loc></url>
+  <url><loc>http://localhost:5173/tv</loc></url>
+  <url><loc>http://localhost:5173/top-airing</loc></url>
+  <url><loc>http://localhost:5173/most-popular</loc></url>
+  <url><loc>http://localhost:5173/recently-updated</loc></url>
+  <url><loc>http://localhost:5173/recently-added</loc></url>
+  <url><loc>http://localhost:5173/completed</loc></url>
+  <url><loc>http://localhost:5173/genres</loc></url>
+  <url><loc>http://localhost:5173/schedule</loc></url>
+</urlset>
