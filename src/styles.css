@@ -5685,3 +5685,8 @@ footer {
     max-width: 160px;
   }
 }
+
+.audio-unavailable{padding:24px;text-align:center;}.audio-unavailable p{color:var(--muted);line-height:1.6;}.audio-unavailable button{margin:8px;}
+.library-search, .library-pagination { display:flex; align-items:center; gap:12px; margin:24px 0; flex-wrap:wrap; }
+.library-search input { flex:1; min-width:180px; padding:14px 18px; border:1px solid #ffffff24; border-radius:12px; background:#16131f; color:#fff; font:inherit; }
+.library-pagination { justify-content:center; }

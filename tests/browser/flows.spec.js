@@ -65,6 +65,21 @@ test.beforeEach(async ({ page }) => {
     });
   });
 });
+test("Hindi library filter persists through search and opens the available episode in Hindi", async ({ page }) => {
+  await page.route("**/api/watchable?**", route => route.fulfill({ json: {
+    items: [{ ...fixtures.detail.anime, firstEpisode: 3, playableEpisodes: 2, availableLanguages: ["hi"] }],
+    pageInfo: { currentPage: 1, hasNextPage: false },
+  } }));
+  await page.goto("/watchable");
+  await page.getByRole("button", { name: "Hindi DUB", exact: true }).click();
+  await expect(page).toHaveURL(/audio=hi/);
+  await page.getByRole("textbox", { name: "Search playable anime" }).fill("Frieren");
+  await page.getByRole("button", { name: "Search library" }).click();
+  await expect(page).toHaveURL(/q=Frieren/);
+  await expect(page).toHaveURL(/audio=hi/);
+  await expect(page.locator(".direct-collection-card").first()).toHaveAttribute("href", /ep=3&audio=hi/);
+});
+
 test("search, details, watchlist persistence and title preferences", async ({
   page,
 }) => {
@@ -333,4 +348,121 @@ test("direct playback, progress, next episode, audio availability and retry", as
       () => JSON.parse(localStorage.getItem("soraix-history"))[0].source,
     ),
   ).toBe("direct");
+});
+
+test("dub switching preserves position, persists choice and never substitutes sub", async ({
+  page,
+}) => {
+  await page.route("**/api/media/**", (route) =>
+    route.fulfill({
+      json: {
+        episodes: [
+          {
+            number: 1,
+            title: "Both audio versions",
+            provider: "audio",
+            availableLanguages: ["sub", "dub"],
+          },
+          {
+            number: 2,
+            title: "Sub only",
+            provider: "direct",
+            availableLanguages: ["sub"],
+          },
+        ],
+      },
+    }),
+  );
+  const clip = fs.readFileSync(
+    new URL("../fixtures/playback.mp4", import.meta.url),
+  );
+  await page.route("**/audio-test.mp4*", (route) => {
+    const range = route
+      .request()
+      .headers()
+      ["range"]?.match(/bytes=(\d+)-(\d*)/);
+    const start = range ? Number(range[1]) : 0;
+    const end = range?.[2]
+      ? Math.min(Number(range[2]), clip.length - 1)
+      : clip.length - 1;
+    return route.fulfill({
+      status: range ? 206 : 200,
+      contentType: "video/mp4",
+      headers: {
+        "Accept-Ranges": "bytes",
+        ...(range
+          ? { "Content-Range": `bytes ${start}-${end}/${clip.length}` }
+          : {}),
+      },
+      body: clip.subarray(start, end + 1),
+    });
+  });
+  const requests = [];
+  await page.route("**/api/stream/**", (route) => {
+    const url = new URL(route.request().url());
+    const audio = url.searchParams.get("language");
+    requests.push(audio);
+    return route.fulfill({
+      json: {
+        provider: "Configured video library",
+        resolvedAt: Date.now(),
+        media: {
+          provider: "hosted",
+          audio,
+          sources: [
+            {
+              url: "/audio-test.mp4?audio=" + audio,
+              type: "file",
+              quality: "Original",
+              language: audio === "dub" ? "English" : "Japanese",
+            },
+          ],
+          captions: [],
+        },
+      },
+    });
+  });
+  await page.goto("/watch/frieren-beyond-journey-s-end-52991?ep=1");
+  await page.waitForFunction(
+    () => document.querySelector("video")?.readyState >= 2,
+  );
+  await page.locator("video").evaluate((v) => {
+    v.muted = true;
+    return v.play();
+  });
+  await page.waitForFunction(
+    () => document.querySelector("video")?.currentTime > 1,
+  );
+  await page.locator("video").evaluate((v) => v.pause());
+  await page.getByRole("button", { name: "DUB", exact: true }).click();
+  await expect(page).toHaveURL(/audio=dub/);
+  await page.waitForFunction(
+    () =>
+      document.querySelector("video")?.currentSrc.includes("audio=dub") &&
+      document.querySelector("video").currentTime >= 0.9,
+  );
+  expect(await page.locator("video").evaluate((v) => v.paused)).toBe(true);
+  await expect(
+    page.getByRole("button", { name: "DUB", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("soraix-audio-version")),
+    ),
+  ).toBe("dub");
+  await page.reload();
+  await page.waitForFunction(() =>
+    document.querySelector("video")?.currentSrc.includes("audio=dub"),
+  );
+  await page.getByRole("button", { name: "Next episode", exact: true }).click();
+  await expect(
+    page.getByText("DUB is unavailable for this episode", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("video")).toHaveCount(0);
+  expect(requests.at(-1)).toBe("dub");
+  await page.getByRole("button", { name: "Watch SUB", exact: true }).click();
+  await page.waitForFunction(() =>
+    document.querySelector("video")?.currentSrc.includes("audio=sub"),
+  );
+  expect(requests.at(-1)).toBe("sub");
 });

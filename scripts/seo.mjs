@@ -2,10 +2,12 @@ import fs from "node:fs/promises";
 try {
   process.loadEnvFile();
 } catch {}
-const base = (process.env.SITE_URL || "http://localhost:5173").replace(
-  /\/$/,
-  "",
-);
+const base = (
+  process.env.SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://soraix.vercel.app")
+).replace(/\/$/, "");
 const paths = [
   "/",
   "/movies",

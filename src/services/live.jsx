@@ -20,7 +20,7 @@ export async function request(path, { force = false } = {}) {
       data = await res.json();
     } catch {
       throw new Error(
-        "The live API is unavailable. Start the SoraiX server and retry.",
+        "The server returned an invalid response. Please retry; if this persists, the deployment API routes need checking.",
       );
     }
     if (!res.ok) {

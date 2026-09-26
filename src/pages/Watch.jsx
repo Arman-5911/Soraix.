@@ -63,17 +63,19 @@ function WatchSession({ a, live, media }) {
   const activePage = Math.min(page, lastPage);
   const choose = (entry) => {
     if (!entry) return;
-    setParams(
-      entry.number ? { ep: String(entry.number) } : { episode: entry.key },
-    );
+    setParams({
+      ...(params.get("audio") ? { audio: params.get("audio") } : {}),
+      ...(entry.number ? { ep: String(entry.number) } : { episode: entry.key }),
+    });
     setTrailer(false);
   };
   useEffect(() => {
     document.body.classList.toggle("theater-mode", lights);
     return () => document.body.classList.remove("theater-mode");
   }, [lights]);
-  const Player =
-    selected?.media?.provider === "direct" ? DirectEpisode : HostedPlayer;
+  const Player = ["direct", "audio"].includes(selected?.media?.provider)
+    ? DirectEpisode
+    : HostedPlayer;
   return (
     <div className={"page watch-page " + (lights ? "lights-off" : "")}>
       <div className="breadcrumb">

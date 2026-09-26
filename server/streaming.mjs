@@ -196,6 +196,7 @@ export function normalizeStream(episode, language = "sub") {
     });
   return {
     provider: "direct",
+    audio: language,
     introEnd: 0,
     sources: [
       {

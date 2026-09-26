@@ -1,0 +1,28 @@
+{
+  "52991": {
+    "episodes": [
+      {
+        "number": 1,
+        "title": "The Journey's End",
+        "sources": [
+          {
+            "url": "https://your-video-cdn.example/frieren/episode-1-hi.m3u8",
+            "type": "hls",
+            "quality": "Auto",
+            "server": "Hindi primary",
+            "audio": "hi",
+            "language": "Hindi"
+          },
+          {
+            "url": "https://your-video-cdn.example/frieren/episode-1-en.m3u8",
+            "type": "hls",
+            "quality": "Auto",
+            "audio": "dub",
+            "language": "English"
+          }
+        ],
+        "captions": []
+      }
+    ]
+  }
+}

@@ -3,4 +3,4 @@ Allow: /
 Disallow: /watch/
 Disallow: /history
 Disallow: /watchlist
-Sitemap: http://localhost:5173/sitemap.xml
+Sitemap: https://soraix.vercel.app/sitemap.xml

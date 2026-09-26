@@ -109,3 +109,21 @@ Unit tests cover remote filter construction, source URL validation, identifier h
 ## Deployment notes
 
 Copy `.env.example` to `.env` and set your public `SITE_URL` before building. The sitemap contains public discovery routes. Individual pages update metadata and structured data in the browser; SSR/prerendering is still needed for full crawler/social-preview coverage. Publish the operator's real support contact before opening the site publicly. Remote provider uptime and media rights are external dependencies, not something this code can provision.
+
+
+## SUB / DUB audio versions
+
+The player now remembers the selected audio version, preserves position and pause/play state when switching, and keeps the selection for the next episode and page reloads. If that version is missing, it shows an explicit unavailable state; it never substitutes SUB for DUB silently.
+
+The current automatic provider still returns SUB only. Additional DUB candidates did not yield a verified stream (one returned a CAPTCHA requirement). No live DUB source is claimed or preconfigured.
+
+To supply a dubbed version, add a source with `"audio": "dub"` and `"language": "English"` in your private `VIDEO_LIBRARY_PATH` file. `"audio": "sub"` identifies original-audio/subtitled sources. A dub-only private entry is merged with the provider's SUB episode list; missing dub episodes remain unavailable. Sources without `audio` keep the legacy player behavior. Caption tracks may also declare `audio` to limit them to the corresponding version. See `docs/video-library.example.json` for the exact format; its example URL is deliberately not a playable source.
+
+Dub feature tests use isolated local media fixtures. They verify source separation, captions, audio switching, position preservation, preference persistence and absent-dub behavior, not availability of dubbed anime on the internet.
+# Vercel routing update
+
+Deploy the updated repository, including `api/index.js` and `vercel.json` together. The old catch-all function is replaced by an explicit rewrite so nested episode/detail/stream routes reach the function. Vercel uses `npm ci`, the Vite build, and `dist`. After redeployment, `/api/health` must return `{"ok":true,"service":"SoraiX","version":2}`. Check `/api/media/52991` and playback next. A deployment of the old commit will retain the old 404 errors.
+
+The Watch on SoraiX page now searches and paginates the live catalogue, checking six candidates per page for actual episode availability. Empty pages are possible when none of those titles have a matching stream. Metadata catalogue size is not a promise that every title has playable episodes.
+
+For cloud-hosted audio/server configuration, set server-only `VIDEO_LIBRARY_JSON` in Vercel environment variables using the schema in `docs/video-library.example.json`, then redeploy. It takes precedence over local `VIDEO_LIBRARY_PATH`. Replace example URLs with real playable HLS/MP4 URLs supporting browser CORS. `audio: "hi"` selects Hindi, `"dub"` selects other dubbed audio, and `"sub"` selects Japanese/subtitled playback. `server` names each selectable source. The primary provider supplies SUB. Hindi discovery now searches DesiDubAnime automatically using the anime's English/romaji names and synonyms, verifies its title/year and Hindi tag, and reads actual episode links. No per-title mapping or generated episode URLs are required. Results refresh after five minutes on the next request; this is on-demand discovery, not an import of every title into a database. The Watch on SoraiX page includes a Hindi DUB filter, search, and pagination. Listings do not guarantee playback: the current resolver supports Vidmoly HLS with an explicit Hindi audio track; other hosts can remain unavailable. Naruto episode 1 playback was browser-verified, and live discovery found Naruto, Shippuden, Jujutsu Kaisen, Frieren and Demon Slayer. Set HINDI_PROVIDER=none to disable automatic Hindi discovery. Configured VIDEO_LIBRARY_JSON Hindi sources still take precedence for playback. Example URLs are documentation only and are never loaded automatically.

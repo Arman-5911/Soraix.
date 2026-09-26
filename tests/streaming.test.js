@@ -7,7 +7,102 @@ import {
   directLibrary,
   resolveEpisode,
 } from "../server/streaming.mjs";
-import { apiHandler } from "../server/api.mjs";
+import {
+  apiHandler,
+  availableMedia,
+  resolveMedia,
+  mergeAudioLibraries,
+} from "../server/api.mjs";
+import { mkdtemp, writeFile, rm, rmdir } from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+
+test("dub sources merge by episode without claiming dub for all episodes", () => {
+  const result = mergeAudioLibraries(
+    {
+      episodes: [
+        { number: 1, availableLanguages: ["sub"] },
+        { number: 2, availableLanguages: ["sub"] },
+      ],
+    },
+    {
+      episodes: [
+        { number: 1, provider: "audio", availableLanguages: ["dub"] },
+        { number: 3, provider: "audio", availableLanguages: ["dub"] },
+      ],
+    },
+  );
+  assert.deepEqual(
+    result.episodes.map((e) => e.availableLanguages),
+    [["sub", "dub"], ["sub"], ["dub"]],
+  );
+});
+test("configured dubbed streams resolve separately from sub and retain correct captions", async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "soraix-dub-"));
+  const oldPath = process.env.VIDEO_LIBRARY_PATH,
+    oldProvider = process.env.STREAMING_PROVIDER,
+    oldHindiProvider = process.env.HINDI_PROVIDER;
+  try {
+    const file = path.join(dir, "library.json");
+    await writeFile(
+      file,
+      JSON.stringify({
+        52991: {
+          episodes: [
+            {
+              number: 1,
+              sources: [
+                {
+                  url: "https://cdn.example/ja.m3u8",
+                  audio: "sub",
+                  language: "Japanese",
+                },
+                {
+                  url: "https://cdn.example/en.m3u8",
+                  audio: "dub",
+                  language: "English",
+                },
+                {
+                  url: "https://cdn.example/en-720.mp4",
+                  audio: "dub",
+                  quality: "720p",
+                  language: "English",
+                },
+              ],
+              captions: [
+                { url: "https://cdn.example/sub.vtt", audio: "sub" },
+                { url: "https://cdn.example/dub.vtt", audio: "dub" },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+    process.env.VIDEO_LIBRARY_PATH = file;
+    process.env.STREAMING_PROVIDER = "none";
+    process.env.HINDI_PROVIDER = "none";
+    const library = await availableMedia(52991);
+    assert.deepEqual(library.episodes[0].availableLanguages, ["sub", "dub"]);
+    const dub = await resolveMedia(52991, 1, "dub");
+    assert.equal(dub.media.audio, "dub");
+    assert.equal(dub.media.sources.length, 2);
+    assert.ok(dub.media.sources.every((s) => s.audio === "dub"));
+    assert.equal(dub.media.captions[0].url, "https://cdn.example/dub.vtt");
+    const sub = await resolveMedia(52991, 1, "sub");
+    assert.equal(sub.media.sources[0].url, "https://cdn.example/ja.m3u8");
+    await assert.rejects(resolveMedia(52991, 2, "dub"), /not available/);
+    await assert.rejects(resolveMedia(52991, 1, "invalid"), /Invalid audio/);
+  } finally {
+    if (oldPath === undefined) delete process.env.VIDEO_LIBRARY_PATH;
+    else process.env.VIDEO_LIBRARY_PATH = oldPath;
+    if (oldProvider === undefined) delete process.env.STREAMING_PROVIDER;
+    else process.env.STREAMING_PROVIDER = oldProvider;
+    if (oldHindiProvider === undefined) delete process.env.HINDI_PROVIDER;
+    else process.env.HINDI_PROVIDER = oldHindiProvider;
+    await rm(path.join(dir, "library.json"));
+    await rmdir(dir);
+  }
+});
 
 const anime = {
   id: 1234567,

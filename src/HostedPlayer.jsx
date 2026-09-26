@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useImperativeHandle } from "react";
 import {
   Play,
   Pause,
@@ -9,13 +9,22 @@ import {
 } from "lucide-react";
 import { useApp, useLocal } from "./store";
 import { IconButton } from "./components";
-export default function HostedPlayer({ anime, episode, onNext, onRetry }) {
+export default function HostedPlayer({
+  anime,
+  episode,
+  onNext,
+  onRetry,
+  controllerRef,
+  initialPlayback,
+}) {
   const { history, saveProgress, notify } = useApp();
   const video = useRef(null),
     savedAt = useRef(0),
     resume = useRef(
-      history.find((h) => h.id === anime.id && h.episode === episode.number)
-        ?.position || 0,
+      initialPlayback?.position ??
+        history.find((h) => h.id === anime.id && h.episode === episode.number)
+          ?.position ??
+        0,
     );
   const [source, setSource] = useState(0),
     [error, setError] = useState(false),
@@ -29,6 +38,16 @@ export default function HostedPlayer({ anime, episode, onNext, onRetry }) {
     [autoNext, setAutoNext] = useLocal("auto-next", false),
     [skipIntro, setSkipIntro] = useLocal("skip-intro", false);
   const media = episode.media;
+  useImperativeHandle(
+    controllerRef,
+    () => ({
+      snapshot: () => ({
+        position: video.current?.currentTime || 0,
+        playing: !!video.current && !video.current.paused,
+      }),
+    }),
+    [],
+  );
   const persist = (v) => {
     if (v && Number.isFinite(v.duration) && v.duration > 0)
       saveProgress({
@@ -38,6 +57,7 @@ export default function HostedPlayer({ anime, episode, onNext, onRetry }) {
         duration: v.duration,
         timestamp: Date.now(),
         source: media.provider === "direct" ? "direct" : "hosted",
+        audio: media.audio || media.sources[source]?.audio || null,
       });
   };
   const play = () => {
@@ -74,6 +94,12 @@ export default function HostedPlayer({ anime, episode, onNext, onRetry }) {
         if (Hls.isSupported()) {
           instance = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
           hls.current = instance;
+          instance.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => {
+            if (!media.audioTrackLanguage) return;
+            const index = instance.audioTracks.findIndex(track => track.lang === media.audioTrackLanguage);
+            if (index >= 0) instance.audioTrack = index;
+            else setError(true);
+          });
           instance.on(Hls.Events.MANIFEST_PARSED, () => {
             if (!disposed)
               setLevels(
@@ -159,11 +185,11 @@ export default function HostedPlayer({ anime, episode, onNext, onRetry }) {
           onLoadedMetadata={() => {
             const v = video.current;
             v.currentTime =
-              resume.current >= v.duration - 5
+              !initialPlayback && resume.current >= v.duration - 1
                 ? 0
-                : Math.min(resume.current, Math.max(0, v.duration - 1));
+                : Math.min(resume.current, Math.max(0, v.duration - 0.05));
             v.playbackRate = speed;
-            if (autoplay) v.play().catch(() => {});
+            if (initialPlayback?.playing ?? autoplay) v.play().catch(() => {});
           }}
           onError={() => setError(true)}
           onPlay={() => setPlaying(true)}
@@ -246,7 +272,7 @@ export default function HostedPlayer({ anime, episode, onNext, onRetry }) {
         >
           {media.sources.map((s, i) => (
             <option value={i} key={s.url}>
-              {s.quality} · {s.language}
+              {s.server || "Primary"} / {s.quality} · {s.language}
             </option>
           ))}
         </select>
