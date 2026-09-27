@@ -85,7 +85,7 @@ export async function graphql(query, variables = {}, ttl = 120_000) {
     pending.delete(key);
   }
 }
-export const mediaFields = `id idMal type title { english romaji native } synonyms description(asHtml:false) coverImage { extraLarge large color } bannerImage format status startDate {year month day} season seasonYear duration episodes averageScore popularity favourites trending updatedAt genres isAdult studios(isMain:true) {nodes {name}} nextAiringEpisode { episode airingAt } siteUrl`;
+export const mediaFields = `id idMal type countryOfOrigin title { english romaji native } synonyms description(asHtml:false) coverImage { extraLarge large color } bannerImage format status startDate {year month day} season seasonYear duration episodes averageScore popularity favourites trending updatedAt genres isAdult studios(isMain:true) {nodes {name}} nextAiringEpisode { episode airingAt } siteUrl`;
 export function safeUrl(value) {
   try {
     const u = new URL(value);
@@ -127,6 +127,7 @@ export function normalize(media) {
   return {
     id,
     anilistId: media.id,
+    country: media.countryOfOrigin,
     playableEpisodes: 0,
     slug:
       english

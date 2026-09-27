@@ -38,7 +38,7 @@ export async function request(path, { force = false } = {}) {
         related: data.related,
       };
     }
-    hydrate(data);
+    if (!/^\/(universe|chapters|pages|readable)(\/|\?)/.test(path)) hydrate(data);
     cache.set(path, { data, time: Date.now() });
     if (cache.size > 300) cache.delete(cache.keys().next().value);
     return data;

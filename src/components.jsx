@@ -23,6 +23,7 @@ import {
   Command,
 } from "lucide-react";
 import { useApp } from "./store";
+import { ModeSwitcher, useUniverse, modeBrand } from "./universe";
 import { anime, getTrendingAnime, getPopularAnime } from "./services/catalog";
 import { request, useResource, NetworkState } from "./services/live";
 export const IconButton = ({ label, children, ...props }) => (
@@ -31,13 +32,17 @@ export const IconButton = ({ label, children, ...props }) => (
   </button>
 );
 export function Logo() {
+  const { mode } = useUniverse();
   return (
-    <Link to="/" className="logo" aria-label="SoraiX home">
+    <Link to="/" className="logo" aria-label={`${modeBrand(mode)} home`}>
       <svg viewBox="0 0 32 38" aria-hidden="true">
         <path d="M21 1 2 22h14l-5 15L31 14H17z" fill="currentColor" />
       </svg>
       <span>
-        Sorai<span className="logo-x">X</span>
+        SoraiX{" "}
+        <small className="brand-mode">
+          {mode[0].toUpperCase() + mode.slice(1)}
+        </small>
         <i />
       </span>
     </Link>
@@ -308,6 +313,7 @@ export function Header() {
             <Menu size={22} />
           </IconButton>
           <Logo />
+          <ModeSwitcher />
           <nav className="desktop-nav">
             {navItems.slice(0, 3).map(([name, url]) => (
               <Link
@@ -415,6 +421,7 @@ export function Header() {
           >
             <div>
               <Logo />
+              <ModeSwitcher />
               <IconButton label="Close menu" onClick={() => setMenu(false)}>
                 <X />
               </IconButton>
@@ -659,6 +666,7 @@ export function Footer() {
       <div className="footer-top">
         <div>
           <Logo />
+          <ModeSwitcher />
           <p>
             A world beyond ordinary.
             <br />

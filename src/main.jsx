@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AppProvider } from "./store";
 import App from "./App";
+import { UniverseProvider } from "./universe";
 import "./styles.css";
 class ErrorBoundary extends React.Component {
   state = { error: false };
@@ -28,7 +29,9 @@ createRoot(document.getElementById("root")).render(
     <ErrorBoundary>
       <BrowserRouter>
         <AppProvider>
-          <App />
+          <UniverseProvider>
+            <App />
+          </UniverseProvider>
         </AppProvider>
       </BrowserRouter>
     </ErrorBoundary>

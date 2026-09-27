@@ -1,4 +1,12 @@
 import { directLibrary, resolveEpisode } from "./streaming.mjs";
+import { readerImage } from "./reading-sources.mjs";
+import {
+  universe,
+  universeDetail,
+  chapters,
+  chapterPages,
+  readyToRead,
+} from "./universe.mjs";
 import { hindiLibrary, resolveHindi } from "./hindi.mjs";
 import fs from "node:fs/promises";
 import {
@@ -164,7 +172,29 @@ export async function apiHandler(req, res, next) {
   }
   try {
     let value;
-    if (url.pathname === "/api/health")
+    if (/^\/api\/reader-image\/wc_[A-Z0-9]{26}\/\d+$/.test(url.pathname)) {
+      const parts = url.pathname.split("/");
+      const image = await readerImage(parts[3], Number(parts[4]));
+      res.setHeader("Content-Type", image.type);
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.end(image.data);
+      return true;
+    } else if (url.pathname === "/api/readable")
+      value = await readyToRead(url.searchParams.get("mode"));
+    else if (url.pathname === "/api/universe")
+      value = await universe(url.searchParams);
+    else if (/^\/api\/universe\/(?:\d+|md-[a-f0-9-]{36})$/.test(url.pathname))
+      value = await universeDetail(url.pathname.split("/").at(-1));
+    else if (/^\/api\/chapters\/(?:\d+|md-[a-f0-9-]{36})$/.test(url.pathname))
+      value = await chapters(
+        url.pathname.split("/").at(-1),
+        url.searchParams.get("language") || "en",
+        undefined,
+        url.searchParams.get("source") || "auto",
+      );
+    else if (/^\/api\/pages\/[A-Za-z0-9_-]+$/.test(url.pathname))
+      value = await chapterPages(url.pathname.split("/").at(-1));
+    else if (url.pathname === "/api/health")
       value = { ok: true, service: "SoraiX", version: 2 };
     else if (url.pathname === "/api/home") value = await home();
     else if (url.pathname === "/api/watchable") {

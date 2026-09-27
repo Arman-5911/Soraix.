@@ -16,6 +16,7 @@ import {
   anime,
 } from "../services/catalog";
 import { useApp } from "../store";
+import { RelatedMedia } from "../universe";
 import { Poster, Section, Modal, IconButton } from "../components";
 import Info from "./Info";
 import { useAnime, NetworkState, Freshness } from "../services/live";
@@ -197,6 +198,7 @@ export default function Detail() {
               items={related.slice(0, 4)}
             />
           )}
+          <RelatedMedia id={a.anilistId} />
           <Section
             name="Your next chapter"
             subtitle="Because one great story leads to another."
