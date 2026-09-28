@@ -1,5 +1,6 @@
 import { ApiError, graphql, mediaFields, normalize } from "./anilist.mjs";
 import { alternativeChapters, alternativePages } from "./reading-sources.mjs";
+import { atsuLibrary } from "./atsumaru.mjs";
 export const modes = {
   anime: ["ANIME", null],
   donghua: ["ANIME", "CN"],
@@ -297,8 +298,16 @@ export function mergeChapterSources(results) {
         provider: result.provider,
       };
       const existing = groups.get(key);
-      if (existing) existing.alternatives.push(version);
-      else groups.set(key, { ...version, alternatives: [] });
+      if (existing)
+        existing.alternatives.push(
+          { ...version, alternatives: undefined },
+          ...(c.alternatives || []),
+        );
+      else
+        groups.set(key, {
+          ...version,
+          alternatives: [...(c.alternatives || [])],
+        });
     }
   }
   return [...groups.values()].sort(
@@ -311,7 +320,7 @@ export async function chapters(
   knownItem,
   source = "auto",
 ) {
-  if (!["auto", "mangadex", "weebcentral"].includes(source))
+  if (!["auto", "mangadex", "weebcentral", "atsumaru"].includes(source))
     throw new ApiError("Unknown reading source.", 400);
   if (!["en", "hi", "ja", "ko", "zh", "es", "fr"].includes(language))
     throw new ApiError("Unsupported chapter language.", 400);
@@ -324,12 +333,15 @@ export async function chapters(
       : (await universeDetail(id)).item);
   if (!["manga", "manhwa", "manhua"].includes(item.mode))
     throw new ApiError("This title uses video playback.", 400);
-  const ids = source === "auto" ? ["mangadex", "weebcentral"] : [source];
+  const ids =
+    source === "auto" ? ["mangadex", "weebcentral", "atsumaru"] : [source];
   const results = await Promise.allSettled(
     ids.map((s) =>
       s === "mangadex"
         ? mangaDexChapters(id, language, item)
-        : alternativeChapters(item, s, language),
+        : s === "atsumaru"
+          ? atsuLibrary(item, language)
+          : alternativeChapters(item, s, language),
     ),
   );
   const sources = results.map((r, i) => ({
@@ -417,7 +429,7 @@ export async function readyToRead(mode) {
   return readingCatalog(new URLSearchParams({ mode, sort: "popular" }));
 }
 export async function chapterPages(id) {
-  if (id.startsWith("wc_")) return alternativePages(id);
+  if (id.startsWith("wc_") || id.startsWith("at_")) return alternativePages(id);
   if (!/^[a-f0-9-]{36}$/.test(id))
     throw new ApiError("Invalid chapter ID.", 400);
   const meta = await md("/chapter/" + id);

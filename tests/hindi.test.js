@@ -4,7 +4,27 @@ import {
   extractVidmoly,
   hindiLibrary,
   resolveHindi,
+  extractDubServers,
 } from "../server/hindi.mjs";
+
+test("dub servers retain published options but reject unrelated and unsafe hosts", () => {
+  const option = (url) =>
+    `<button data-embed-id="dub:${Buffer.from(url).toString("base64")}">Server</button>`;
+  const urls = [
+    "https://filesforever.link/embed/a",
+    "https://desidubanime.p2pplay.pro/#a",
+    "https://player.abyssplayer.com/a",
+    "https://vidmoly.org/embed-a.html",
+  ];
+  assert.deepEqual(
+    extractDubServers(
+      urls.map(option).join("") +
+        option("https://evil.test/embed/a") +
+        option("https://user:pass@vidmoly.org/embed-a.html"),
+    ).map((s) => s.url),
+    urls,
+  );
+});
 
 test("Hindi embed discovery only accepts the supported HTTPS host", () => {
   const embed = (url) =>

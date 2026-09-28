@@ -49,7 +49,7 @@ export function AppProvider({ children }) {
     [watchlist, setWatchlist] = useLocal("watchlist", []),
     [history, setHistory] = useLocal("history", []),
     [recent, setRecent] = useLocal("searches", []),
-    [theme, setTheme] = useLocal("theme", "midnight"),
+    [theme, setTheme] = useLocal("theme", "glass"),
     [toast, setToast] = useState("");
   useEffect(() => {
     if (toast) {

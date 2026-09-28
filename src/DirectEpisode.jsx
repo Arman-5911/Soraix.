@@ -1,11 +1,15 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useLocal } from "./store";
 import { useResource, NetworkState } from "./services/live";
 import HostedPlayer from "./HostedPlayer";
 
 const audioLabel = (value) =>
-  value === "hi" ? "Hindi DUB" : value.toUpperCase();
+  value === "hi"
+    ? "Hindi DUB"
+    : value === "dub"
+      ? "English DUB"
+      : value.toUpperCase();
 
 export default function DirectEpisode({ anime, episode, onNext }) {
   const languages = episode.media.availableLanguages || ["sub"];
@@ -14,6 +18,22 @@ export default function DirectEpisode({ anime, episode, onNext }) {
   const requested = params.get("audio") || preferred;
   const language = ["sub", "dub", "hi"].includes(requested) ? requested : "sub";
   const available = languages.includes(language);
+  const [selectedServer, setServer] = useState(null);
+  const [allowExternalAds, setAllowExternalAds] = useState(true);
+  const serverKey = `${anime.id}-${episode.number}-${language}`;
+  const embedded =
+    selectedServer?.key === serverKey ? selectedServer.url : null;
+  const supportsAdMode =
+    embedded &&
+    (() => {
+      try {
+        return ["filesforever.link", "desidubanime.p2pplay.pro"].includes(
+          new URL(embedded).hostname,
+        );
+      } catch {
+        return false;
+      }
+    })();
   const controller = useRef(null),
     switching = useRef(null);
   const live = useResource(
@@ -60,7 +80,70 @@ export default function DirectEpisode({ anime, episode, onNext }) {
           ))}
         </div>
       </div>
-      {!available ? (
+      {!!live.data?.media?.servers?.length && (
+        <div className="stream-toolbar">
+          <label>
+            Playback server{" "}
+            <select
+              aria-label="Dub server"
+              value={embedded || "native"}
+              onChange={(e) =>
+                setServer(
+                  e.target.value === "native"
+                    ? null
+                    : { key: serverKey, url: e.target.value },
+                )
+              }
+            >
+              <option value="native">SoraiX native player</option>
+              {live.data.media.servers.map((s) => (
+                <option key={s.url} value={s.url}>
+                  {s.name} · external player
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {embedded &&
+      live.data?.media?.servers?.some((s) => s.url === embedded) ? (
+        <div>
+          {supportsAdMode && (
+            <div className="stream-toolbar">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={allowExternalAds}
+                  onChange={(e) => setAllowExternalAds(e.target.checked)}
+                />{" "}
+                Allow external-player ads and pop-ups
+              </label>
+              <button onClick={() => setServer(null)}>
+                Use SoraiX native player
+              </button>
+            </div>
+          )}
+          <iframe
+            key={`${embedded}-${!!supportsAdMode && allowExternalAds}`}
+            title="Dub episode player"
+            src={embedded}
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowFullScreen
+            sandbox={
+              supportsAdMode && allowExternalAds
+                ? undefined
+                : "allow-scripts allow-same-origin allow-forms allow-presentation"
+            }
+            style={{ width: "100%", aspectRatio: "16 / 9", border: 0 }}
+          />
+          <p className="stream-credit">
+            {supportsAdMode && allowExternalAds
+              ? "Ads and pop-ups from this external player are allowed. If its AdBlock message remains, allow ads for the player in your browser or extension and reload it."
+              : "This external player may require ads or reject sandbox protection."}{" "}
+            External playback progress is not saved by SoraiX.
+          </p>
+        </div>
+      ) : !available ? (
         <div className="stream-loading audio-unavailable" role="status">
           <div>
             <h3>{audioLabel(language)} is unavailable for this episode</h3>
@@ -82,6 +165,11 @@ export default function DirectEpisode({ anime, episode, onNext }) {
       ) : live.loading || !live.data || live.error ? (
         <div className="stream-loading">
           <NetworkState resource={live} />
+        </div>
+      ) : !live.data.media.sources?.length ? (
+        <div className="stream-loading" role="status">
+          Direct playback is unavailable.{" "}
+          <button onClick={live.retry}>Retry</button>
         </div>
       ) : (
         <HostedPlayer

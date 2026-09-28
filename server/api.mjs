@@ -1,5 +1,8 @@
 import { directLibrary, resolveEpisode } from "./streaming.mjs";
 import { readerImage } from "./reading-sources.mjs";
+import { deliverDub } from "./dub-delivery.mjs";
+import { pipeline } from "node:stream/promises";
+import { Readable } from "node:stream";
 import {
   universe,
   universeDetail,
@@ -154,6 +157,17 @@ export async function resolveMedia(id, number, language) {
       },
     };
   if (language === "hi") return resolveHindi(id, number);
+  if (language === "dub") {
+    try {
+      return await resolveEpisode(id, number, language);
+    } catch (originalError) {
+      try {
+        return await resolveHindi(id, number, "dub");
+      } catch {
+        throw originalError;
+      }
+    }
+  }
   return resolveEpisode(id, number, language);
 }
 export async function apiHandler(req, res, next) {
@@ -172,7 +186,26 @@ export async function apiHandler(req, res, next) {
   }
   try {
     let value;
-    if (/^\/api\/reader-image\/wc_[A-Z0-9]{26}\/\d+$/.test(url.pathname)) {
+    if (url.pathname === "/api/dub-media") {
+      const media = await deliverDub(url.searchParams.get("token"));
+      res.setHeader("Content-Type", media.type);
+      if (media.stream) {
+        // Stream binary segments rather than buffering them into a function payload.
+        try {
+          await pipeline(Readable.from(media.stream), res);
+        } catch {
+          if (!res.destroyed) res.destroy();
+        }
+        return true;
+      }
+      res.end(media.data);
+      return true;
+    }
+    if (
+      /^\/api\/reader-image\/(?:wc_[A-Z0-9]{26}|at_[A-Za-z0-9-]{1,80}_[A-Za-z0-9-]{1,80})\/\d+$/.test(
+        url.pathname,
+      )
+    ) {
       const parts = url.pathname.split("/");
       const image = await readerImage(parts[3], Number(parts[4]));
       res.setHeader("Content-Type", image.type);

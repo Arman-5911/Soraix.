@@ -16,6 +16,7 @@ import { useLocal, useApp } from "./store";
 import { getAnimeDetails } from "./services/catalog";
 import { useResource, NetworkState, useSavedTitles } from "./services/live";
 import "./universe.css";
+import ThemePicker from "./ThemePicker";
 export const MODES = ["anime", "manga", "manhwa", "manhua", "donghua"];
 const Context = createContext(null);
 const label = (s) => s[0].toUpperCase() + s.slice(1);
@@ -115,6 +116,7 @@ export function UniverseHeader() {
         ϟ SoraiX <small className="brand-mode">{label(mode)}</small>
       </Link>
       <ModeSwitcher />
+      <ThemePicker />
       <nav>
         <Link to="/">Discover</Link>
         <Link to="/search">Search {label(mode)}</Link>
@@ -511,6 +513,7 @@ export function UniverseDetail() {
               {[
                 ["auto", "Auto · combine available chapters"],
                 ["mangadex", "MangaDex"],
+                ["atsumaru", "Atsumaru · English"],
                 ["weebcentral", "WeebCentral · English"],
               ].map(([id, name]) => (
                 <option key={id} value={id}>

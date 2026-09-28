@@ -5,6 +5,7 @@ import {
   titleMatches,
   parseHindiEpisodes,
   discoverHindi,
+  hindiSearchTitles,
 } from "../server/hindi-discovery.mjs";
 
 const anime = {
@@ -14,6 +15,21 @@ const anime = {
   },
   year: 2023,
 };
+test("Hindi search includes aliases and plain heading cards without accepting sequels", () => {
+  const metadata = { ...anime, synonyms: ["Frieren"] };
+  assert.deepEqual(hindiSearchTitles(metadata), [
+    "Sousou no Frieren",
+    "Frieren: Beyond Journey's End",
+    "Frieren",
+  ]);
+  assert.deepEqual(
+    searchCandidates(
+      '<a href="/anime/frieren/"><h3>Frieren</h3></a><a href="/anime/frieren-2/"><h3>Frieren 2</h3></a>',
+      metadata,
+    ),
+    ["https://www.desidubanime.me/anime/frieren/"],
+  );
+});
 test("Hindi matching excludes sequels and requires the correct year and Hindi tag", () => {
   const card = (slug, title) =>
     `<a href="https://www.desidubanime.me/anime/${slug}/" title="${title}"></a>`;

@@ -28,6 +28,7 @@ export async function request(path, { force = false } = {}) {
         data.error || "The live catalogue is temporarily unavailable.",
       );
       error.status = res.status;
+      error.path = path;
       throw error;
     }
     if (data.anime && data.recommendations) {
@@ -38,7 +39,8 @@ export async function request(path, { force = false } = {}) {
         related: data.related,
       };
     }
-    if (!/^\/(universe|chapters|pages|readable)(\/|\?)/.test(path)) hydrate(data);
+    if (!/^\/(universe|chapters|pages|readable)(\/|\?)/.test(path))
+      hydrate(data);
     cache.set(path, { data, time: Date.now() });
     if (cache.size > 300) cache.delete(cache.keys().next().value);
     return data;
@@ -152,7 +154,11 @@ export function NetworkState({ resource, compact = false }) {
       >
         <h2>
           {resource.error.status === 404
-            ? "Anime not found"
+            ? resource.error.path?.startsWith("/anime/")
+              ? "Anime not found"
+              : resource.error.path?.startsWith("/stream/")
+                ? "This audio stream is unavailable"
+                : "Requested content is unavailable"
             : "Couldn’t load live data"}
         </h2>
         <p>{resource.error.message}</p>

@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 import { ApiError } from "./anilist.mjs";
+import { atsuPages } from "./atsumaru.mjs";
 const origins = { weebcentral: "https://weebcentral.com" };
 const cache = new Map(),
   pending = new Map();
@@ -143,6 +144,15 @@ export async function alternativeChapters(item, source, language) {
   return { chapters: [], provider: "WeebCentral", language };
 }
 export async function alternativePages(id, direct = false) {
+  if (id.startsWith("at_")) {
+    const result = await atsuPages(id);
+    return {
+      ...result,
+      pages: direct
+        ? result.pages
+        : result.pages.map((_, index) => `/api/reader-image/${id}/${index}`),
+    };
+  }
   let url, source;
   if (/^wc_[A-Z0-9]{26}$/.test(id)) {
     source = "weebcentral";
@@ -179,7 +189,13 @@ export async function alternativePages(id, direct = false) {
   };
 }
 export async function readerImage(id, index) {
-  if (!/^wc_[A-Z0-9]{26}$/.test(id) || !Number.isInteger(index) || index < 0)
+  if (
+    !/^(?:wc_[A-Z0-9]{26}|at_[A-Za-z0-9-]{1,80}_[A-Za-z0-9-]{1,80})$/.test(
+      id,
+    ) ||
+    !Number.isInteger(index) ||
+    index < 0
+  )
     throw new ApiError("Invalid chapter page.", 400);
   const { pages } = await alternativePages(id, true);
   if (!pages[index]) throw new ApiError("Page not found.", 404);

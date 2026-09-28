@@ -57,6 +57,10 @@ export function searchCandidates(html, anime) {
       url = providerUrl(a.attr("href"), "anime");
     const labels = [
       a.attr("title"),
+      a.find("h3").text().trim(),
+      a.find("h2").text().trim(),
+      a.find("img").attr("alt"),
+      a.text().trim(),
       ...a
         .find("h3 span")
         .map((_, el) => $(el).text())
@@ -116,9 +120,7 @@ async function search(anime) {
       throw new ApiError("Hindi search is temporarily unavailable.", 502);
     return value;
   });
-  for (const name of [
-    ...new Set([anime.title.romaji, anime.title.english].filter(Boolean)),
-  ]) {
+  for (const name of hindiSearchTitles(anime)) {
     const body = await readHindi(
       `${HINDI_ORIGIN}/wp-admin/admin-ajax.php?${new URLSearchParams({ action: "instant_search", query: name, nonce })}`,
     );
@@ -146,6 +148,17 @@ async function search(anime) {
   }
   return null;
 }
+export function hindiSearchTitles(anime) {
+  return [
+    ...new Set(
+      [
+        anime.title?.romaji,
+        anime.title?.english,
+        ...(anime.synonyms || []),
+      ].filter(Boolean),
+    ),
+  ].slice(0, 4);
+}
 export async function discoverHindi(id, knownAnime) {
   if (process.env.HINDI_PROVIDER === "none") return { episodes: [] };
   return cached(`title:${id}`, 300000, async () => {
@@ -153,6 +166,9 @@ export async function discoverHindi(id, knownAnime) {
     const result = await search(anime);
     if (!result) return { episodes: [] };
     const $ = load(result.html);
+    const hasEnglish = $('meta[property="article:tag"]')
+      .toArray()
+      .some((e) => $(e).attr("content")?.toLowerCase() === "english");
     const watch = $("a[href]")
       .map((_, el) => providerUrl($(el).attr("href"), "watch"))
       .get()
@@ -175,6 +191,11 @@ export async function discoverHindi(id, knownAnime) {
           hindiPage: watch,
         },
       ];
+    if (hasEnglish)
+      episodes = episodes.map((e) => ({
+        ...e,
+        availableLanguages: ["hi", "dub"],
+      }));
     return {
       episodes,
       provider: "DesiDubAnime",

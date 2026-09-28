@@ -65,19 +65,37 @@ test.beforeEach(async ({ page }) => {
     });
   });
 });
-test("Hindi library filter persists through search and opens the available episode in Hindi", async ({ page }) => {
-  await page.route("**/api/watchable?**", route => route.fulfill({ json: {
-    items: [{ ...fixtures.detail.anime, firstEpisode: 3, playableEpisodes: 2, availableLanguages: ["hi"] }],
-    pageInfo: { currentPage: 1, hasNextPage: false },
-  } }));
+test("Hindi library filter persists through search and opens the available episode in Hindi", async ({
+  page,
+}) => {
+  await page.route("**/api/watchable?**", (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            ...fixtures.detail.anime,
+            firstEpisode: 3,
+            playableEpisodes: 2,
+            availableLanguages: ["hi"],
+          },
+        ],
+        pageInfo: { currentPage: 1, hasNextPage: false },
+      },
+    }),
+  );
   await page.goto("/watchable");
   await page.getByRole("button", { name: "Hindi DUB", exact: true }).click();
   await expect(page).toHaveURL(/audio=hi/);
-  await page.getByRole("textbox", { name: "Search playable anime" }).fill("Frieren");
+  await page
+    .getByRole("textbox", { name: "Search playable anime" })
+    .fill("Frieren");
   await page.getByRole("button", { name: "Search library" }).click();
   await expect(page).toHaveURL(/q=Frieren/);
   await expect(page).toHaveURL(/audio=hi/);
-  await expect(page.locator(".direct-collection-card").first()).toHaveAttribute("href", /ep=3&audio=hi/);
+  await expect(page.locator(".direct-collection-card").first()).toHaveAttribute(
+    "href",
+    /ep=3&audio=hi/,
+  );
 });
 
 test("search, details, watchlist persistence and title preferences", async ({
@@ -243,6 +261,105 @@ test("schedule day selection queries real timestamp bounds", async ({
 });
 
 // Local WPT fixture tests the native player without relying on a live CDN.
+test("missing Hindi stream keeps the anime visible and explains audio unavailability", async ({
+  page,
+}) => {
+  await page.route("**/api/media/**", (route) =>
+    route.fulfill({
+      json: {
+        episodes: [
+          {
+            number: 1,
+            title: "First episode",
+            provider: "direct",
+            availableLanguages: ["hi"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/stream/**", (route) =>
+    route.fulfill({
+      status: 404,
+      json: { error: "Hindi direct playback is unavailable for this episode." },
+    }),
+  );
+  await page.goto("/watch/frieren-beyond-journey-s-end-52991?ep=1&audio=hi");
+  await expect(
+    page.getByRole("heading", { name: "This audio stream is unavailable" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Anime not found" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Try again", exact: true }),
+  ).toBeVisible();
+});
+
+test("Mirror remains selectable when native Hindi stream is unavailable", async ({
+  page,
+}) => {
+  await page.route("**/api/media/**", (route) =>
+    route.fulfill({
+      json: {
+        episodes: [
+          {
+            number: 1,
+            title: "Episode one",
+            provider: "direct",
+            availableLanguages: ["hi"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/stream/**", (route) =>
+    route.fulfill({
+      json: {
+        resolvedAt: "now",
+        provider: "DesiDubAnime",
+        media: {
+          provider: "direct",
+          audio: "hi",
+          sources: [],
+          servers: [
+            { name: "Mirror", url: "https://filesforever.link/embed/test" },
+          ],
+        },
+      },
+    }),
+  );
+  await page.route("https://filesforever.link/**", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<p>External player</p>" }),
+  );
+  await page.goto("/watch/frieren-beyond-journey-s-end-52991?audio=hi&ep=1");
+  await page
+    .getByLabel("Dub server")
+    .selectOption("https://filesforever.link/embed/test");
+  await expect(page.getByTitle("Dub episode player")).toHaveAttribute(
+    "src",
+    "https://filesforever.link/embed/test",
+  );
+  await expect(page.getByTitle("Dub episode player")).not.toHaveAttribute(
+    "sandbox",
+  );
+  await page
+    .getByRole("checkbox", { name: "Allow external-player ads and pop-ups" })
+    .uncheck();
+  await expect(page.getByTitle("Dub episode player")).toHaveAttribute(
+    "sandbox",
+    /allow-scripts/,
+  );
+  await page
+    .getByRole("checkbox", { name: "Allow external-player ads and pop-ups" })
+    .check();
+  await expect(page.getByTitle("Dub episode player")).not.toHaveAttribute(
+    "sandbox",
+  );
+  await page.getByLabel("Dub server").selectOption("native");
+  await expect(page.getByTitle("Dub episode player")).toHaveCount(0);
+});
+
 test("direct playback, progress, next episode, audio availability and retry", async ({
   page,
 }) => {
@@ -301,7 +418,7 @@ test("direct playback, progress, next episode, audio availability and retry", as
   });
   await page.goto("/watch/frieren-beyond-journey-s-end-52991?ep=1");
   await expect(
-    page.getByRole("button", { name: "DUB", exact: true }),
+    page.getByRole("button", { name: "English DUB", exact: true }),
   ).toBeDisabled();
   await expect(page.locator("iframe")).toHaveCount(0);
   await page.waitForFunction(
@@ -434,7 +551,7 @@ test("dub switching preserves position, persists choice and never substitutes su
     () => document.querySelector("video")?.currentTime > 1,
   );
   await page.locator("video").evaluate((v) => v.pause());
-  await page.getByRole("button", { name: "DUB", exact: true }).click();
+  await page.getByRole("button", { name: "English DUB", exact: true }).click();
   await expect(page).toHaveURL(/audio=dub/);
   await page.waitForFunction(
     () =>
@@ -443,7 +560,7 @@ test("dub switching preserves position, persists choice and never substitutes su
   );
   expect(await page.locator("video").evaluate((v) => v.paused)).toBe(true);
   await expect(
-    page.getByRole("button", { name: "DUB", exact: true }),
+    page.getByRole("button", { name: "English DUB", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   expect(
     await page.evaluate(() =>
@@ -456,7 +573,9 @@ test("dub switching preserves position, persists choice and never substitutes su
   );
   await page.getByRole("button", { name: "Next episode", exact: true }).click();
   await expect(
-    page.getByText("DUB is unavailable for this episode", { exact: true }),
+    page.getByText("English DUB is unavailable for this episode", {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(page.locator("video")).toHaveCount(0);
   expect(requests.at(-1)).toBe("dub");

@@ -161,3 +161,32 @@ Live verification: Solo Leveling returned 201 WeebCentral chapter entries (Manga
 
 
 Reader reliability update: inspired by [Neko's documented source merging feature](https://github.com/nekomangaorg/Neko), with an independent implementation and no imported Neko code. Auto fills chapter gaps across sources, the reader offers alternate editions, and Reload pages remounts failed images. Source lookup searches up to six title aliases in bounded parallel batches. Title searches no longer hide books merely because MangaDex has no English uploads; another source may still have chapters. Live checks returned Naruto 701, Solo Leveling 201 and Tales of Demons and Gods 980 chapter entries. First-page image decoding was verified for Naruto (59-page chapter) and Tales of Demons and Gods (14-page chapter). These checks are samples, not full-catalogue or Vercel verification.
+
+
+### Dub server selection
+
+DesiDubAnime episode discovery now exposes English dub when the matched title advertises English, in addition to Hindi. English resolution first tries the existing provider, then Vidmoly with a verified `en` HLS audio track; Hindi selects `hi`. Unsupported language tracks are not relabeled. Episode-level resolution remains authoritative; title tags do not guarantee every episode has that language.
+
+Hindi playback offers the native Vidmoly player plus published Mirror (filesforever.link), Streamp2p, Abyss and Vidmoly embeds when those links occur on the episode page. URLs are restricted to observed HTTPS hosts. Embedded players stay within SoraiX, have popup/top-navigation permissions omitted, and manage their own audio menus and progress; their availability is provider-dependent. No claim of seven or eight servers per episode is made. Naruto episode 1 English playback was browser-verified beyond two seconds. All four published embed URLs responded HTTP 200, but this alone does not verify playback inside every embed.
+
+
+Ad-free player update: third-party dub iframes (including Mirror) are no longer offered or used as fallback. Only verified direct streams play in the native SoraiX player. Source failures show a retry/availability message. Earlier embedded-server documentation describes the previous implementation; it is superseded by this change. This does not guarantee direct Hindi coverage for every title or remove advertising embedded within provider media itself.
+
+
+### Cloud Hindi delivery fix
+
+The production Naruto Hindi API returned a successful stream response but its CDN URL returned 403 when requested from the browser. Dub manifests now point to `/api/dub-media`; both child manifests and media segments are delivered through the application backend. Requests retain the upstream signed URL and use ordinary fetch without spoofed headers, redirects or relaxed upstream authorization. Fixed HTTPS CDN host/path validation rejects arbitrary destinations. Manifest responses are bounded to 4 MiB and binary segments are streamed (bounded to 32 MiB) rather than buffered into the Vercel function response. Audio language selection remains explicit. Upstream denials remain errors. This increases application-server bandwidth and requires live Vercel verification after redeployment; provider availability still varies. CLI deployment was unavailable because this workspace has no Vercel credentials.
+
+
+### September 28 source update
+
+Mirror and other published dub embed options are restored alongside the default native player, including when native resolution fails. The sandbox remains enabled; external players may reject it or require advertising, and no ad-free Mirror playback is claimed. Vidmoly's newly observed `prx-vi-a-1.vmpx.online` CDN is accepted by both stream validation and media delivery; lookalike hosts remain rejected.
+
+Reading now combines MangaDex, WeebCentral and Atsumaru. Atsumaru uses public search, allChapters and read/chapter JSON endpoints with an independent adapter. Endpoint discovery was informed by Neko's Atsumaru adapter (https://github.com/nekomangaorg/Neko/tree/main/app/src/main/java/eu/kanade/tachiyomi/source/online/merged/atsumaru); no source code was copied. Novels/adult entries are excluded, exact comic titles outrank sequel aliases, and duplicate chapter uploads become selectable alternative editions. Atsumaru page IDs use `at_<manga>_<chapter>`; pages are resolved only to the fixed `cdn.atsu.moe/static/` origin. Omniscient Reader returned 314 distinct chapter entries from Atsumaru versus 312 on WeebCentral, and a page from its 64-page opening chapter decoded in Chromium. Coverage and total counts are source-dependent, not a complete-catalogue guarantee.
+
+
+### External-player advertising compatibility
+
+At the owner's explicit request, manually selected Mirror and Streamp2p players offer an `Allow external-player ads and pop-ups` checkbox. It starts enabled, removes only the selected iframe's sandbox, and remounts the frame when toggled. Unchecking restores sandbox protection. Native playback remains the default and loads no external embed; other supported embed hosts retain their sandbox. External providers control their advertisements and navigation. SoraiX cannot disable a visitor's browser extensions or guarantee that third-party ads are safe.
+
+Live comparison on Naruto episode 1: Mirror without sandbox played more than eight seconds of the 23-minute episode. Streamp2p without sandbox still returned an empty video source in this test, including after a click; it is not claimed working. Browser tests verify Mirror selection, sandbox toggle/remount, return to native mode and audio switching. These local changes still require Vercel redeployment.

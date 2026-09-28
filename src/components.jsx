@@ -1,3 +1,4 @@
+import ThemePicker, { THEMES } from "./ThemePicker";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -375,14 +376,13 @@ export function Header() {
           <div className="settings-panel">
             <h3>Make yourself at home</h3>
             <p>Choose your atmosphere</p>
-            {["midnight", "dim"].map((t) => (
+            {THEMES.map(([t, name]) => (
               <button
                 className={theme === t ? "selected" : ""}
                 key={t}
                 onClick={() => setTheme(t)}
               >
-                {t === "midnight" ? "Midnight black" : "Soft charcoal"}{" "}
-                {theme === t && <Check size={14} />}
+                {name} {theme === t && <Check size={14} />}
               </button>
             ))}
           </div>
@@ -421,7 +421,6 @@ export function Header() {
           >
             <div>
               <Logo />
-              <ModeSwitcher />
               <IconButton label="Close menu" onClick={() => setMenu(false)}>
                 <X />
               </IconButton>
@@ -451,14 +450,7 @@ export function Header() {
             <button onClick={randomAnime} disabled={randomBusy}>
               <Shuffle size={18} /> Random anime
             </button>
-            <button
-              onClick={() =>
-                setTheme(theme === "midnight" ? "dim" : "midnight")
-              }
-            >
-              <Settings size={18} /> Switch to{" "}
-              {theme === "midnight" ? "soft charcoal" : "midnight"}
-            </button>
+            <ThemePicker />
           </nav>
         </Modal>
       )}
@@ -666,7 +658,6 @@ export function Footer() {
       <div className="footer-top">
         <div>
           <Logo />
-          <ModeSwitcher />
           <p>
             A world beyond ordinary.
             <br />

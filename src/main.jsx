@@ -5,6 +5,7 @@ import { AppProvider } from "./store";
 import App from "./App";
 import { UniverseProvider } from "./universe";
 import "./styles.css";
+import './themes.css';
 class ErrorBoundary extends React.Component {
   state = { error: false };
   static getDerivedStateFromError() {

@@ -1,0 +1,212 @@
+/* Liquid Night: an iOS-inspired dark appearance, independently designed for SoraiX. */
+:root[data-theme="glass"] {
+  --bg: #080b12;
+  --surface: #121823;
+  --raised: #1b2533;
+  --line: #d9eaff16;
+  --muted: #9aa9bd;
+  --accent: #9ebcff;
+  --accent-bright: #d0dfff;
+  --pink: #dac0ff;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "DM Sans", sans-serif;
+}
+.theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.theme-picker select {
+  max-width: 150px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: #eef3ff;
+  background: var(--raised);
+  cursor: pointer;
+}
+:root[data-theme="glass"] body {
+  background:
+    radial-gradient(ellipse at 12% 0%, #334b712b, transparent 50%),
+    radial-gradient(ellipse at 100% 30%, #59427915, transparent 50%), var(--bg);
+}
+:root[data-theme="glass"] :is(h1, h2, h3, h4) {
+  font-family: -apple-system, BlinkMacSystemFont, "Manrope", sans-serif;
+  letter-spacing: -0.04em;
+}
+:root[data-theme="glass"] :is(.header, .universe-header) {
+  background: #101722d9;
+  border-bottom: 1px solid #e1eeff1c;
+  box-shadow:
+    0 8px 32px #0002,
+    inset 0 1px #ffffff0c;
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+:root[data-theme="glass"]
+  :is(.header-search, .mode-switcher select, .theme-picker select) {
+  background: #ffffff09;
+  border: 1px solid #ffffff18;
+  border-radius: 14px;
+  color: #e5edff;
+}
+:root[data-theme="glass"] select option {
+  background: #17202e;
+  color: #edf3ff;
+}
+:root[data-theme="glass"] .subnav {
+  background: #0c111bcc;
+  border-color: var(--line);
+}
+:root[data-theme="glass"] :is(.hero, .universe-hero) {
+  border-radius: 30px;
+  border: 1px solid #dceaff1a;
+  box-shadow: 0 24px 70px #0005;
+  overflow: hidden;
+}
+:root[data-theme="glass"] :is(.button, .watchlist-button) {
+  border-radius: 14px;
+  border: 1px solid #ffffff1b;
+}
+:root[data-theme="glass"] .button.primary {
+  color: #0c172b;
+  background: linear-gradient(145deg, #d4e4ff, #93b3f5);
+  box-shadow:
+    0 4px 20px #638ce42b,
+    inset 0 1px #ffffff9c;
+}
+:root[data-theme="glass"] :is(.button.secondary, .icon-button:hover) {
+  background: #ffffff0d;
+  border-color: #ffffff20;
+}
+:root[data-theme="glass"] :is(.poster-wrap, .universe-card > div) {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px #0003;
+  outline: 1px solid #ffffff0c;
+}
+:root[data-theme="glass"] :is(.anime-card, .universe-card) {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root[data-theme="glass"]
+  :is(
+    .settings-panel,
+    .filter-panel,
+    .search-modal,
+    .book-detail,
+    .schedule-panel,
+    .discussion,
+    .episode-panel,
+    .reader-toolbar,
+    .reader-bottom
+  ) {
+  background: linear-gradient(145deg, #1b2532ed, #101722f5);
+  border: 1px solid #d9eaff1b;
+  border-radius: 22px;
+  box-shadow:
+    0 16px 44px #0003,
+    inset 0 1px #ffffff08;
+}
+:root[data-theme="glass"] .settings-panel {
+  padding: 22px;
+}
+:root[data-theme="glass"] .settings-panel button {
+  border-radius: 12px;
+}
+:root[data-theme="glass"] .settings-panel button.selected {
+  background: #a7c4ff17;
+  color: #cdddff;
+}
+:root[data-theme="glass"]
+  :is(
+    .stream-toolbar,
+    .hosted-controls,
+    .server-panel,
+    .chapter-list a,
+    .reading-history a
+  ) {
+  background: #141c28;
+  border-color: #d9eaff16;
+}
+:root[data-theme="glass"] :is(.chapter-list a, .reading-history a) {
+  border-radius: 14px;
+}
+:root[data-theme="glass"] :is(.audio-options button, .episode-buttons button) {
+  border-radius: 10px;
+  background: #202a39;
+  border: 1px solid #ffffff0c;
+}
+:root[data-theme="glass"]
+  :is(.audio-options button.active, .episode-buttons button.active) {
+  background: #a6c2ff;
+  color: #0a1425;
+}
+:root[data-theme="glass"] :is(footer, .universe-footer) {
+  background: #0a0f18;
+  border-color: var(--line);
+}
+:root[data-theme="glass"]
+  :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid #afccff;
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme="glass"] :is(.page, .universe) {
+    animation: glass-arrive 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  :root[data-theme="glass"]
+    :is(button, .button, select, input, .chapter-list a) {
+    transition:
+      background-color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.2s,
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  :root[data-theme="glass"] :is(button, .button):active {
+    transform: scale(0.97);
+  }
+  @media (hover: hover) {
+    :root[data-theme="glass"] :is(.anime-card, .universe-card):hover {
+      transform: translateY(-5px);
+    }
+    :root[data-theme="glass"] .button.primary:hover {
+      box-shadow: 0 6px 28px #638ce44a;
+    }
+  }
+}
+@keyframes glass-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 600px) {
+  .universe-header .theme-picker {
+    margin-left: auto;
+  }
+  .universe-header .theme-picker > span {
+    display: none;
+  }
+  :root[data-theme="glass"] :is(.hero, .universe-hero) {
+    border-radius: 22px;
+  }
+  :root[data-theme="glass"] :is(.header, .universe-header) {
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="glass"] *,
+  :root[data-theme="glass"] *::before,
+  :root[data-theme="glass"] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
