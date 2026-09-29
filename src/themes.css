@@ -645,3 +645,39 @@
 :root .watch-player-session:is(:fullscreen, :-webkit-full-screen, .player-expanded) .external-player-shell { position: absolute; inset: 0; width: 100%; height: 100%; }
 :root .watch-player-session:is(:fullscreen, :-webkit-full-screen, .player-expanded) .external-player-shell iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; aspect-ratio: auto !important; border: 0; }
 :root .watch-player-session:is(:fullscreen, :-webkit-full-screen, .player-expanded) .external-fullscreen-button { display: none; }
+
+/* Comfortable targets and breathing room across navigation and playback. */
+:root .icon-button { min-width: 44px; min-height: 44px; flex-shrink: 0; }
+:root .icon-button svg { flex-shrink: 0; }
+:root :is(.header-tools, .section-actions, .audio-options) { gap: 10px; }
+:root :is(.desktop-nav, .universe-header nav) { gap: 8px; }
+:root :is(.desktop-nav, .universe-header nav) a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 10px 14px; gap: 8px; font-size: 12px; line-height: 1.4;
+  white-space: nowrap; flex-shrink: 0;
+}
+:root .subnav { height: auto; min-height: 52px; }
+:root .subnav nav { gap: 16px; }
+:root .subnav nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; white-space: nowrap; font-size: 12px; }
+:root :is(.hosted-controls, .reader-toolbar) { gap: 12px; }
+:root :is(.hosted-controls, .reader-toolbar, .stream-toolbar) select { min-height: 44px; padding: 10px 14px; font-size: 12px; }
+:root .audio-options { flex-wrap: wrap; }
+:root .audio-options button { min-height: 44px; padding: 10px 16px; line-height: 1.4; }
+:root .player-options { flex-wrap: wrap; gap: 12px 20px; padding-block: 10px; }
+:root .player-options :is(label, button) { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; line-height: 1.5; }
+:root .episode-navigation { flex-wrap: wrap; gap: 12px; }
+:root .episode-navigation .button { min-height: 44px; padding: 10px 16px; }
+:root :is(a, button, select):focus-visible { outline: 2px solid var(--accent, #a8c8ff); outline-offset: 3px; }
+@media (max-width: 600px) {
+  :root .universe-header nav { justify-content: flex-start; flex-wrap: wrap; gap: 6px; }
+  :root .universe-header nav a { padding: 10px 12px; font-size: 12px; }
+  :root .subnav { overflow-x: auto; justify-content: flex-start; gap: 20px; }
+  :root .subnav nav { gap: 14px; flex-shrink: 0; }
+  :root .hosted-controls { gap: 12px; padding: 14px; margin-inline: 0; }
+  :root .player-options { gap: 8px 16px; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  :root .header-inner { flex-wrap: wrap; gap: 12px 20px; }
+  :root .desktop-nav { order: 5; flex-basis: 100%; justify-content: center; }
+  :root .header-search { flex: 1; min-width: 120px; }
+}
