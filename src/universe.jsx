@@ -19,6 +19,15 @@ import { useResource, NetworkState, useSavedTitles } from "./services/live";
 import "./universe.css";
 import ThemePicker from "./ThemePicker";
 import GlassWidgets from "./GlassWidgets";
+import {
+  Tv,
+  BookOpen,
+  Flame,
+  ScrollText,
+  Sparkles,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 export const MODES = ["anime", "manga", "manhwa", "manhua", "donghua"];
 const Context = createContext(null);
 const label = (s) => s[0].toUpperCase() + s.slice(1);
@@ -49,12 +58,100 @@ export function UniverseProvider({ children }) {
     </Context.Provider>
   );
 }
+export const MODE_CONFIG = {
+  anime: {
+    label: "Anime",
+    tag: "Series & Movies",
+    badge: "Stream",
+    icon: Tv,
+    gradient: "linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)",
+    glow: "rgba(56, 189, 248, 0.45)",
+    accent: "#38bdf8",
+  },
+  manga: {
+    label: "Manga",
+    tag: "Japanese Comics",
+    badge: "Read",
+    icon: BookOpen,
+    gradient: "linear-gradient(135deg, #f472b6 0%, #c084fc 100%)",
+    glow: "rgba(244, 114, 182, 0.45)",
+    accent: "#f472b6",
+  },
+  manhwa: {
+    label: "Manhwa",
+    tag: "Korean Webtoons",
+    badge: "Webtoons",
+    icon: Flame,
+    gradient: "linear-gradient(135deg, #fb923c 0%, #f43f5e 100%)",
+    glow: "rgba(251, 146, 60, 0.5)",
+    accent: "#fb923c",
+  },
+  manhua: {
+    label: "Manhua",
+    tag: "Chinese Comics",
+    badge: "Cultivation",
+    icon: ScrollText,
+    gradient: "linear-gradient(135deg, #34d399 0%, #06b6d4 100%)",
+    glow: "rgba(52, 211, 153, 0.45)",
+    accent: "#34d399",
+  },
+  donghua: {
+    label: "Donghua",
+    tag: "Chinese Animation",
+    badge: "Epic 3D",
+    icon: Sparkles,
+    gradient: "linear-gradient(135deg, #fbbf24 0%, #a855f7 100%)",
+    glow: "rgba(251, 191, 36, 0.45)",
+    accent: "#fbbf24",
+  },
+};
+
 export const useUniverse = () => useContext(Context);
+
 export function ModeSwitcher() {
   const { mode, setMode } = useUniverse();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const current = MODE_CONFIG[mode] || MODE_CONFIG.anime;
+  const CurrentIcon = current.icon;
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  const handleSelect = (m) => {
+    setMode(m);
+    setOpen(false);
+    navigate("/");
+  };
+
   return (
-    <div className="mode-switcher">
+    <div
+      className={`mode-switcher ios27-switcher ${open ? "is-open" : ""}`}
+      ref={containerRef}
+      style={{
+        "--mode-glow": current.glow,
+        "--mode-accent": current.accent,
+      }}
+    >
+      {/* Underlying accessible select for test automation & assistive technology */}
       <select
         aria-label="Content mode"
         value={mode}
@@ -62,6 +159,8 @@ export function ModeSwitcher() {
           setMode(e.target.value);
           navigate("/");
         }}
+        className="ios27-native-select"
+        tabIndex={-1}
       >
         {MODES.map((m) => (
           <option key={m} value={m}>
@@ -69,6 +168,88 @@ export function ModeSwitcher() {
           </option>
         ))}
       </select>
+
+      {/* iOS 27 Liquid Glass Trigger Capsule */}
+      <button
+        type="button"
+        className="ios27-trigger"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        title={`Current mode: ${current.label} · Click to switch`}
+      >
+        <span className="ios27-fluid-glow" />
+        <span className="ios27-sheen-line" />
+        <span
+          className="ios27-icon-wrap"
+          style={{ background: current.gradient }}
+        >
+          <CurrentIcon size={14} className="ios27-icon" />
+        </span>
+        <span className="ios27-label-wrap">
+          <span className="ios27-label">{current.label}</span>
+          <span className="ios27-badge">{current.badge}</span>
+        </span>
+        <ChevronDown
+          size={14}
+          className={`ios27-chevron ${open ? "rotated" : ""}`}
+        />
+      </button>
+
+      {/* iOS 27 Liquid Glass Floating Island Menu */}
+      {open && (
+        <div
+          className="ios27-liquid-island"
+          role="listbox"
+          aria-label="Content mode selection"
+        >
+          <div className="ios27-island-glass-fx" />
+          <div className="ios27-island-header">
+            <span className="ios27-island-dot" />
+            <span className="ios27-island-title">UNIVERSE · LIQUID OS 27</span>
+          </div>
+          <div className="ios27-island-list">
+            {MODES.map((m) => {
+              const item = MODE_CONFIG[m] || MODE_CONFIG.anime;
+              const Icon = item.icon;
+              const isSelected = mode === m;
+              return (
+                <button
+                  type="button"
+                  key={m}
+                  role="option"
+                  aria-selected={isSelected}
+                  className={`ios27-item ${isSelected ? "selected" : ""}`}
+                  onClick={() => handleSelect(m)}
+                >
+                  <span
+                    className="ios27-item-icon"
+                    style={{ background: item.gradient }}
+                  >
+                    <Icon size={15} />
+                  </span>
+                  <div className="ios27-item-content">
+                    <div className="ios27-item-top">
+                      <span className="ios27-item-label">{item.label}</span>
+                      <span className="ios27-item-badge">{item.badge}</span>
+                    </div>
+                    <span className="ios27-item-tag">{item.tag}</span>
+                  </div>
+                  {isSelected && (
+                    <span className="ios27-item-check">
+                      <Check size={13} strokeWidth={3} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="ios27-island-footer">
+            <span className="ios27-fluid-wave" />
+            <span>Fluid Dynamic Dimension</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
