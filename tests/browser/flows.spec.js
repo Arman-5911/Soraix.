@@ -356,8 +356,116 @@ test("Mirror remains selectable when native Hindi stream is unavailable", async 
   await expect(page.getByTitle("Dub episode player")).not.toHaveAttribute(
     "sandbox",
   );
+  for (const fallback of [false, true]) {
+    if (fallback) {
+      await page.setViewportSize({width:390,height:844});
+      await page.evaluate(() => { Element.prototype.requestFullscreen = undefined; Element.prototype.webkitRequestFullscreen = undefined; });
+    }
+    await page.getByRole("button", {name:"Fullscreen external player",exact:true}).click();
+    await page.waitForFunction(() => document.fullscreenElement || document.querySelector(".player-expanded"));
+    expect(await page.getByTitle("Dub episode player").boundingBox()).toEqual(await page.locator(".watch-player-session").boundingBox());
+    await page.getByRole("button", {name:"Exit fullscreen",exact:true}).click();
+    await page.waitForFunction(() => !document.fullscreenElement && !document.querySelector(".player-expanded"));
+  }
   await page.getByLabel("Dub server").selectOption("native");
   await expect(page.getByTitle("Dub episode player")).toHaveCount(0);
+});
+
+test("liquid glass widgets, player sliders and reduced motion work", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator(".glass-widget")).toHaveCount(3);
+  await page.route("**/api/media/**", (route) =>
+    route.fulfill({
+      json: {
+        episodes: [
+          {
+            number: 1,
+            title: "Test episode",
+            provider: "direct",
+            availableLanguages: ["sub"],
+          },
+        ],
+      },
+    }),
+  );
+  await page.route("**/api/stream/**", (route) =>
+    route.fulfill({
+      json: {
+        resolvedAt: "test",
+        media: {
+          provider: "direct",
+          sources: [
+            {
+              url: "/glass-clip.mp4",
+              type: "file",
+              quality: "Original",
+              language: "SUB",
+            },
+          ],
+          captions: [],
+        },
+      },
+    }),
+  );
+  await page.route("**/glass-clip.mp4", (route) => {
+    const clip = fs.readFileSync(
+      new URL("../fixtures/playback.mp4", import.meta.url),
+    );
+    const range = route
+      .request()
+      .headers()
+      .range?.match(/bytes=(\d+)-(\d*)/);
+    if (!range)
+      return route.fulfill({
+        contentType: "video/mp4",
+        headers: { "Accept-Ranges": "bytes" },
+        body: clip,
+      });
+    const start = Number(range[1]),
+      end = range[2]
+        ? Math.min(Number(range[2]), clip.length - 1)
+        : clip.length - 1;
+    return route.fulfill({
+      status: 206,
+      contentType: "video/mp4",
+      headers: {
+        "Accept-Ranges": "bytes",
+        "Content-Range": `bytes ${start}-${end}/${clip.length}`,
+      },
+      body: clip.subarray(start, end + 1),
+    });
+  });
+  await page.goto("/watch/frieren-beyond-journey-s-end-52991?ep=1");
+  await page.waitForFunction(
+    () => document.querySelector("video")?.readyState >= 2,
+  );
+  const seek = page.getByRole("slider", { name: "Seek video" });
+  await expect(seek).toBeEnabled();
+  await seek.focus();
+  await seek.press("End");
+  await expect
+    .poll(() => page.locator("video").evaluate((v) => v.currentTime))
+    .toBeGreaterThan(0);
+  const volume = page.getByRole("slider", { name: "Video volume" });
+  await volume.focus();
+  await volume.press("Home");
+  await expect
+    .poll(() => page.locator("video").evaluate((v) => v.volume))
+    .toBe(0);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    )
+    .toBe(true);
+  await page.screenshot({ path: "docs/screenshots/liquid-glass-player.png" });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".hosted-controls button").first()).toHaveCSS(
+    "transition-duration",
+    "0s",
+  );
 });
 
 test("direct playback, progress, next episode, audio availability and retry", async ({
@@ -585,3 +693,181 @@ test("dub switching preserves position, persists choice and never substitutes su
   );
   expect(requests.at(-1)).toBe("sub");
 });
+
+test("auto intro respects cold open and auto next retains fullscreen", async ({
+  page,
+}) => {
+  await page.route("**/api/media/**", (route) =>
+    route.fulfill({
+      json: {
+        episodes: [1, 2].map((number) => ({
+          number,
+          title: `Episode ${number}`,
+          provider: "direct",
+          availableLanguages: ["sub"],
+        })),
+      },
+    }),
+  );
+  await page.route("**/api/stream/**", async (route) => {
+    const number = new URL(route.request().url()).pathname.split("/").at(-1);
+    if (number === "2")
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.fulfill({
+      json: {
+        resolvedAt: number,
+        media: {
+          provider: "direct",
+          sources: [
+            {
+              url: `/autonext.mp4?ep=${number}`,
+              type: "file",
+              quality: "Original",
+              language: "Japanese",
+            },
+          ],
+        },
+      },
+    });
+  });
+  const clip = fs.readFileSync(
+    new URL("../fixtures/playback.mp4", import.meta.url),
+  );
+  await page.route("**/autonext.mp4*", (route) => {
+    const range = route
+      .request()
+      .headers()
+      .range?.match(/bytes=(\d+)-(\d*)/);
+    const start = range ? Number(range[1]) : 0,
+      end = range?.[2]
+        ? Math.min(Number(range[2]), clip.length - 1)
+        : clip.length - 1;
+    return route.fulfill({
+      status: range ? 206 : 200,
+      contentType: "video/mp4",
+      headers: {
+        "Accept-Ranges": "bytes",
+        ...(range
+          ? { "Content-Range": `bytes ${start}-${end}/${clip.length}` }
+          : {}),
+      },
+      body: clip.subarray(start, end + 1),
+    });
+  });
+  await page.route("https://api.aniskip.com/**", (route) => {
+    const duration = Number(
+      new URL(route.request().url()).searchParams.get("episodeLength"),
+    );
+    return route.fulfill({
+      json: {
+        found: true,
+        results: [
+          {
+            skipType: "op",
+            episodeLength: duration,
+            interval: { startTime: 0.6, endTime: 1.6 },
+          },
+        ],
+      },
+    });
+  });
+  await page.goto("/watch/frieren-beyond-journey-s-end-52991?ep=1");
+  await expect(page.getByText("Intro timing by AniSkip")).toBeVisible();
+  await expect(page.getByLabel("Auto skip intro")).toBeChecked();
+  await expect(page.getByLabel("Auto next", { exact: true })).toBeChecked();
+  await expect(page.getByLabel("Autoplay", { exact: true })).not.toBeChecked();
+  await page.getByRole("button", { name: "Fullscreen", exact: true }).click();
+  await page.waitForFunction(() =>
+    document.fullscreenElement?.classList.contains("watch-player-session"),
+  );
+  expect(await page.locator("video").boundingBox()).toEqual(await page.locator(".watch-player-session").boundingBox());
+  await page.getByRole("button", {name:"Fill screen",exact:true}).click();
+  await expect(page.locator("video")).toHaveCSS("object-fit", "cover");
+  await page.getByRole("button", {name:"Fit video",exact:true}).click();
+  await expect(page.locator("video")).toHaveCSS("object-fit", "contain");
+  await page.evaluate(() => {
+    window.originalFullscreen = document.fullscreenElement;
+    window.fullscreenExits = 0;
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) window.fullscreenExits++;
+    });
+  });
+  await page.locator("video").evaluate((v) => {
+    v.muted = true;
+    window.firstVideo = v;
+    window.introJump = false;
+    v.addEventListener("seeking", () => {
+      if (v.currentTime >= 1.6) window.introJump = true;
+    });
+    return v.play();
+  });
+  await expect
+    .poll(() => page.locator("video").evaluate((v) => v.currentTime))
+    .toBeLessThan(0.6);
+  await page.waitForFunction(() => window.introJump === true);
+  // Rewinding into the opening after a skip should remain possible.
+  await page.locator("video").evaluate((v) => {
+    v.pause();
+    v.currentTime = 0.8;
+    v.dispatchEvent(new Event("timeupdate"));
+  });
+  await expect
+    .poll(() => page.locator("video").evaluate((v) => v.currentTime))
+    .toBeLessThan(1);
+  await page.locator("video").evaluate((v) => {
+    v.currentTime = v.duration - 0.25;
+    return v.play();
+  });
+  await expect(page).toHaveURL(/ep=2/);
+  await page.waitForFunction(
+    () =>
+      document.querySelector("video")?.currentSrc.includes("ep=2") &&
+      !document.querySelector("video").paused,
+  );
+  expect(
+    await page.evaluate(() => ({
+      same: document.fullscreenElement === window.originalFullscreen,
+      exits: window.fullscreenExits,
+      tag: document.fullscreenElement?.className,
+      connected: window.originalFullscreen?.isConnected,
+    })),
+  ).toEqual({
+    same: true,
+    exits: 0,
+    tag: "watch-player-session",
+    connected: true,
+  });
+  await expect(page.getByLabel("Auto next", { exact: true })).toHaveCount(0);
+  await page.locator("video").evaluate((v) => {
+    v.currentTime = v.duration - 0.1;
+    return v.play();
+  });
+  await page.waitForFunction(() => document.querySelector("video")?.ended);
+  await expect(page).toHaveURL(/ep=2/);
+});
+for (const failure of ['missing', 'denied']) {
+  test(`fullscreen fallback expands and exits when API is ${failure}`, async ({page}) => {
+    await page.setViewportSize({width:390,height:844});
+    await page.route('**/api/media/**', route=>route.fulfill({json:{episodes:[{number:1,title:'Episode 1',sources:[{url:'/empty.mp4',type:'file'}]}]}}));
+    await page.route('**/empty.mp4',route=>route.abort());
+    await page.goto('/watch/frieren-beyond-journey-s-end-52991?ep=1');
+    await page.evaluate(mode=>{
+      Element.prototype.requestFullscreen = mode === 'missing' ? undefined : () => Promise.reject(new Error('Denied'));
+      Element.prototype.webkitRequestFullscreen = undefined;
+    },failure);
+    await page.getByRole('button',{name:'Expand video',exact:true}).click();
+    const shell=page.locator('.watch-player-session');
+    await expect(shell).toHaveClass(/player-expanded/);
+    const box=await shell.boundingBox();
+    expect(await page.locator("video").boundingBox()).toEqual(box);
+    expect(box.x).toBe(0); expect(box.y).toBe(0);
+    expect(box.width).toBe(390); expect(box.height).toBe(844);
+    await page.getByRole('button',{name:'Exit fullscreen',exact:true}).click();
+    await expect(shell).not.toHaveClass(/player-expanded/);
+    await page.getByRole('button',{name:'Expand video',exact:true}).click();
+    await expect(shell).toHaveClass(/player-expanded/);
+    await page.keyboard.press('Escape');
+    await expect(shell).not.toHaveClass(/player-expanded/);
+    expect(await page.evaluate(()=>document.body.classList.contains('player-fullscreen-open'))).toBe(false);
+  });
+}

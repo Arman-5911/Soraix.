@@ -41,6 +41,7 @@ export async function mediaLibrary(id) {
     .map((e) => ({
       number: e.number,
       title: String(e.title || `Episode ${e.number}`),
+      introStart: Number(e.introStart) || 0,
       introEnd: Number(e.introEnd) || 0,
       sources: (e.sources || [])
         .map((s) => ({

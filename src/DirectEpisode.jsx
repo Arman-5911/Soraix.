@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useLocal } from "./store";
 import { useResource, NetworkState } from "./services/live";
 import HostedPlayer from "./HostedPlayer";
+import { togglePlayerFullscreen } from "./playerFullscreen";
 
 const audioLabel = (value) =>
   value === "hi"
@@ -11,7 +12,13 @@ const audioLabel = (value) =>
       ? "English DUB"
       : value.toUpperCase();
 
-export default function DirectEpisode({ anime, episode, onNext }) {
+export default function DirectEpisode({
+  anime,
+  episode,
+  onNext,
+  fullscreenRef,
+  initialPlayback,
+}) {
   const languages = episode.media.availableLanguages || ["sub"];
   const [params, setParams] = useSearchParams();
   const [preferred, setPreferred] = useLocal("audio-version", "sub");
@@ -107,7 +114,13 @@ export default function DirectEpisode({ anime, episode, onNext }) {
       )}
       {embedded &&
       live.data?.media?.servers?.some((s) => s.url === embedded) ? (
-        <div>
+        <div className="external-player-shell">
+          <button
+            className="external-fullscreen-button"
+            onClick={() => togglePlayerFullscreen(fullscreenRef?.current)}
+          >
+            Fullscreen external player
+          </button>
           {supportsAdMode && (
             <div className="stream-toolbar">
               <label>
@@ -175,7 +188,8 @@ export default function DirectEpisode({ anime, episode, onNext }) {
         <HostedPlayer
           key={`${episode.key}-${language}-${live.data.resolvedAt}`}
           controllerRef={controller}
-          initialPlayback={switching.current}
+          initialPlayback={switching.current || initialPlayback}
+          fullscreenRef={fullscreenRef}
           anime={anime}
           episode={{
             ...episode,

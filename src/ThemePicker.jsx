@@ -1,7 +1,7 @@
 import React from "react";
 import { useApp } from "./store";
 export const THEMES = [
-  ["glass", "Liquid Night"],
+  ["glass", "Liquid Glass · Dark"],
   ["midnight", "Midnight black"],
   ["dim", "Soft charcoal"],
 ];

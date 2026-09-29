@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import {
   Link,
+  NavLink,
   useLocation,
   useNavigate,
   useParams,
@@ -17,6 +18,7 @@ import { getAnimeDetails } from "./services/catalog";
 import { useResource, NetworkState, useSavedTitles } from "./services/live";
 import "./universe.css";
 import ThemePicker from "./ThemePicker";
+import GlassWidgets from "./GlassWidgets";
 export const MODES = ["anime", "manga", "manhwa", "manhua", "donghua"];
 const Context = createContext(null);
 const label = (s) => s[0].toUpperCase() + s.slice(1);
@@ -118,12 +120,14 @@ export function UniverseHeader() {
       <ModeSwitcher />
       <ThemePicker />
       <nav>
-        <Link to="/">Discover</Link>
-        <Link to="/search">Search {label(mode)}</Link>
-        <Link to="/watchlist">
+        <NavLink to="/" end>
+          Discover
+        </NavLink>
+        <NavLink to="/search">Search {label(mode)}</NavLink>
+        <NavLink to="/watchlist">
           {mode === "donghua" ? "Watchlist" : "My Library"}
-        </Link>
-        <Link to="/history">History</Link>
+        </NavLink>
+        <NavLink to="/history">History</NavLink>
       </nav>
     </header>
   );
@@ -213,6 +217,7 @@ export function UniverseHome() {
   const top = live.data?.items[0];
   return (
     <div className="page universe" key={mode}>
+      <GlassWidgets />
       {!live.data ? (
         <NetworkState resource={live} />
       ) : (

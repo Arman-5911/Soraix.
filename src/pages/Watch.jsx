@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   Play,
@@ -22,6 +22,7 @@ import { IconButton, Section } from "../components";
 import Discussion from "../Discussion";
 import DirectEpisode from "../DirectEpisode";
 import HostedPlayer from "../HostedPlayer";
+import { exitPlayerFullscreen } from "../playerFullscreen";
 
 export default function Watch() {
   const { slug } = useParams();
@@ -33,6 +34,23 @@ export default function Watch() {
 }
 function WatchSession({ a, live, media }) {
   const { title, watchlist, toggleWatchlist } = useApp();
+  const fullscreenRef = useRef(null);
+  useEffect(() => {
+    const target = fullscreenRef.current;
+    const escape = (event) => {
+      if (
+        event.key === "Escape" &&
+        target?.classList.contains("player-expanded")
+      )
+        exitPlayerFullscreen(target);
+    };
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("keydown", escape);
+      exitPlayerFullscreen(target);
+    };
+  }, []);
+  const [nextPlayback, setNextPlayback] = useState(null);
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState(""),
     [grid, setGrid] = useState(true),
@@ -61,8 +79,13 @@ function WatchSession({ a, live, media }) {
   );
   const lastPage = Math.max(0, Math.ceil(filtered.length / 60) - 1);
   const activePage = Math.min(page, lastPage);
-  const choose = (entry) => {
+  const choose = (entry, continuePlayback = false) => {
     if (!entry) return;
+    setNextPlayback(
+      continuePlayback
+        ? { episode: entry.key, position: 0, playing: true }
+        : null,
+    );
     setParams({
       ...(params.get("audio") ? { audio: params.get("audio") } : {}),
       ...(entry.number ? { ep: String(entry.number) } : { episode: entry.key }),
@@ -103,60 +126,72 @@ function WatchSession({ a, live, media }) {
       {live.error && <NetworkState resource={live} compact />}
       <div className="watch-layout">
         <div className="player-column">
-          {media.loading || media.error ? (
-            <NetworkState resource={media} />
-          ) : selected?.media ? (
-            <Player
-              key={selected.key}
-              anime={a}
-              episode={selected}
-              onNext={
-                episodes[selectedIndex + 1]?.media
-                  ? () => choose(episodes[selectedIndex + 1])
-                  : null
-              }
-            />
-          ) : (
-            <div
-              className="official-screen"
-              style={{
-                backgroundImage: `linear-gradient(0deg,#0b0b10f5,#0b0b10b0),url("${a.banner || a.poster}")`,
-              }}
+          <div className="watch-player-session" ref={fullscreenRef}>
+            <button
+              className="exit-player-fullscreen"
+              onClick={() => exitPlayerFullscreen(fullscreenRef.current)}
             >
-              {trailer && a.trailer ? (
-                <iframe
-                  className="official-trailer"
-                  src={`https://www.youtube-nocookie.com/embed/${a.trailer.id}?autoplay=1`}
-                  title={title(a) + " — Official trailer"}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="official-screen-copy">
-                  <span className="official-play-icon">
-                    <Play size={27} />
-                  </span>
-                  <span className="eyebrow">IN-SITE PLAYBACK</span>
-                  <h2>No in-site episode source available yet</h2>
-                  <p>
-                    This title is in the catalogue, but its full episodes are
-                    not currently available on SoraiX.
-                  </p>
-                  <Link className="button primary" to="/watchable">
-                    Browse playable episodes
-                  </Link>
-                  {a.trailer && (
-                    <button
-                      className="button secondary small"
-                      onClick={() => setTrailer(true)}
-                    >
-                      <Play size={14} /> Watch official trailer
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+              Exit fullscreen
+            </button>
+            {media.loading || media.error ? (
+              <NetworkState resource={media} />
+            ) : selected?.media ? (
+              <Player
+                key={selected.key}
+                fullscreenRef={fullscreenRef}
+                initialPlayback={
+                  nextPlayback?.episode === selected.key ? nextPlayback : null
+                }
+                anime={a}
+                episode={selected}
+                onNext={
+                  episodes[selectedIndex + 1]?.media
+                    ? () => choose(episodes[selectedIndex + 1], true)
+                    : null
+                }
+              />
+            ) : (
+              <div
+                className="official-screen"
+                style={{
+                  backgroundImage: `linear-gradient(0deg,#0b0b10f5,#0b0b10b0),url("${a.banner || a.poster}")`,
+                }}
+              >
+                {trailer && a.trailer ? (
+                  <iframe
+                    className="official-trailer"
+                    src={`https://www.youtube-nocookie.com/embed/${a.trailer.id}?autoplay=1`}
+                    title={title(a) + " — Official trailer"}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="official-screen-copy">
+                    <span className="official-play-icon">
+                      <Play size={27} />
+                    </span>
+                    <span className="eyebrow">IN-SITE PLAYBACK</span>
+                    <h2>No in-site episode source available yet</h2>
+                    <p>
+                      This title is in the catalogue, but its full episodes are
+                      not currently available on SoraiX.
+                    </p>
+                    <Link className="button primary" to="/watchable">
+                      Browse playable episodes
+                    </Link>
+                    {a.trailer && (
+                      <button
+                        className="button secondary small"
+                        onClick={() => setTrailer(true)}
+                      >
+                        <Play size={14} /> Watch official trailer
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <div className="player-options">
             <button onClick={() => setLights(!lights)}>
               <Lightbulb size={16} /> Lights {lights ? "on" : "off"}

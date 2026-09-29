@@ -1,3 +1,4 @@
+import GlassWidgets from "../GlassWidgets";
 import { WatchableCollection } from "./Watchable";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -321,6 +322,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <GlassWidgets />
       <div className="home-content">
         <Freshness resource={live} />
         {live.error && <NetworkState resource={live} compact />}
