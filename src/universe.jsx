@@ -1,3 +1,4 @@
+import Brand from "./Brand";
 import React, {
   createContext,
   useContext,
@@ -19,16 +20,15 @@ import { useResource, NetworkState, useSavedTitles } from "./services/live";
 import "./universe.css";
 import ThemePicker from "./ThemePicker";
 import GlassWidgets from "./GlassWidgets";
-import {
-  Tv,
-  BookOpen,
-  Flame,
-  ScrollText,
-  Sparkles,
-  ChevronDown,
-  Check,
-} from "lucide-react";
+import ChapterNarration from "./ChapterNarration";
 export const MODES = ["anime", "manga", "manhwa", "manhua", "donghua"];
+const MODE_ICONS = {
+  anime: "🎬",
+  manga: "📖",
+  manhwa: "📱",
+  manhua: "🖌️",
+  donghua: "🐉",
+};
 const Context = createContext(null);
 const label = (s) => s[0].toUpperCase() + s.slice(1);
 export const modeBrand = (mode) => `SoraiX ${label(mode)}`;
@@ -37,6 +37,9 @@ export function UniverseProvider({ children }) {
   const [library, setLibrary] = useLocal("reading-library", []);
   const [history, setHistory] = useLocal("reading-history", []);
   const mode = MODES.includes(saved) ? saved : "anime";
+  useEffect(() => {
+    document.documentElement.dataset.contentMode = mode;
+  }, [mode]);
   const toggle = (item) =>
     setLibrary((old) =>
       old.some((a) => a.anilistId === item.anilistId)
@@ -58,198 +61,37 @@ export function UniverseProvider({ children }) {
     </Context.Provider>
   );
 }
-export const MODE_CONFIG = {
-  anime: {
-    label: "Anime",
-    tag: "Series & Movies",
-    badge: "Stream",
-    icon: Tv,
-    gradient: "linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)",
-    glow: "rgba(56, 189, 248, 0.45)",
-    accent: "#38bdf8",
-  },
-  manga: {
-    label: "Manga",
-    tag: "Japanese Comics",
-    badge: "Read",
-    icon: BookOpen,
-    gradient: "linear-gradient(135deg, #f472b6 0%, #c084fc 100%)",
-    glow: "rgba(244, 114, 182, 0.45)",
-    accent: "#f472b6",
-  },
-  manhwa: {
-    label: "Manhwa",
-    tag: "Korean Webtoons",
-    badge: "Webtoons",
-    icon: Flame,
-    gradient: "linear-gradient(135deg, #fb923c 0%, #f43f5e 100%)",
-    glow: "rgba(251, 146, 60, 0.5)",
-    accent: "#fb923c",
-  },
-  manhua: {
-    label: "Manhua",
-    tag: "Chinese Comics",
-    badge: "Cultivation",
-    icon: ScrollText,
-    gradient: "linear-gradient(135deg, #34d399 0%, #06b6d4 100%)",
-    glow: "rgba(52, 211, 153, 0.45)",
-    accent: "#34d399",
-  },
-  donghua: {
-    label: "Donghua",
-    tag: "Chinese Animation",
-    badge: "Epic 3D",
-    icon: Sparkles,
-    gradient: "linear-gradient(135deg, #fbbf24 0%, #a855f7 100%)",
-    glow: "rgba(251, 191, 36, 0.45)",
-    accent: "#fbbf24",
-  },
-};
-
 export const useUniverse = () => useContext(Context);
-
 export function ModeSwitcher() {
   const { mode, setMode } = useUniverse();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef(null);
-
-  const current = MODE_CONFIG[mode] || MODE_CONFIG.anime;
-  const CurrentIcon = current.icon;
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    function handleKeyDown(e) {
-      if (e.key === "Escape") {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  const handleSelect = (m) => {
-    setMode(m);
-    setOpen(false);
-    navigate("/");
-  };
-
+  const location = useLocation();
   return (
-    <div
-      className={`mode-switcher ios27-switcher ${open ? "is-open" : ""}`}
-      ref={containerRef}
-      style={{
-        "--mode-glow": current.glow,
-        "--mode-accent": current.accent,
-      }}
-    >
-      {/* Underlying accessible select for test automation & assistive technology */}
+    <div className="mode-switcher">
       <select
         aria-label="Content mode"
-        value={mode}
+        value={
+          location.pathname === "/read-listen" ||
+          new URLSearchParams(location.search).get("listen") === "1"
+            ? "listen"
+            : mode
+        }
         onChange={(e) => {
+          if (e.target.value === "listen") {
+            navigate("/read-listen");
+            return;
+          }
           setMode(e.target.value);
           navigate("/");
         }}
-        className="ios27-native-select"
-        tabIndex={-1}
       >
         {MODES.map((m) => (
           <option key={m} value={m}>
-            {label(m)}
+            {MODE_ICONS[m]} {label(m)}
           </option>
         ))}
+        <option value="listen">🎧 Read &amp; Listen</option>
       </select>
-
-      {/* iOS 27 Liquid Glass Trigger Capsule */}
-      <button
-        type="button"
-        className="ios27-trigger"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        title={`Current mode: ${current.label} · Click to switch`}
-      >
-        <span className="ios27-fluid-glow" />
-        <span className="ios27-sheen-line" />
-        <span
-          className="ios27-icon-wrap"
-          style={{ background: current.gradient }}
-        >
-          <CurrentIcon size={14} className="ios27-icon" />
-        </span>
-        <span className="ios27-label-wrap">
-          <span className="ios27-label">{current.label}</span>
-          <span className="ios27-badge">{current.badge}</span>
-        </span>
-        <ChevronDown
-          size={14}
-          className={`ios27-chevron ${open ? "rotated" : ""}`}
-        />
-      </button>
-
-      {/* iOS 27 Liquid Glass Floating Island Menu */}
-      {open && (
-        <div
-          className="ios27-liquid-island"
-          role="listbox"
-          aria-label="Content mode selection"
-        >
-          <div className="ios27-island-glass-fx" />
-          <div className="ios27-island-header">
-            <span className="ios27-island-dot" />
-            <span className="ios27-island-title">UNIVERSE · LIQUID OS 27</span>
-          </div>
-          <div className="ios27-island-list">
-            {MODES.map((m) => {
-              const item = MODE_CONFIG[m] || MODE_CONFIG.anime;
-              const Icon = item.icon;
-              const isSelected = mode === m;
-              return (
-                <button
-                  type="button"
-                  key={m}
-                  role="option"
-                  aria-selected={isSelected}
-                  className={`ios27-item ${isSelected ? "selected" : ""}`}
-                  onClick={() => handleSelect(m)}
-                >
-                  <span
-                    className="ios27-item-icon"
-                    style={{ background: item.gradient }}
-                  >
-                    <Icon size={15} />
-                  </span>
-                  <div className="ios27-item-content">
-                    <div className="ios27-item-top">
-                      <span className="ios27-item-label">{item.label}</span>
-                      <span className="ios27-item-badge">{item.badge}</span>
-                    </div>
-                    <span className="ios27-item-tag">{item.tag}</span>
-                  </div>
-                  {isSelected && (
-                    <span className="ios27-item-check">
-                      <Check size={13} strokeWidth={3} />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          <div className="ios27-island-footer">
-            <span className="ios27-fluid-wave" />
-            <span>Fluid Dynamic Dimension</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -295,9 +137,7 @@ export function UniverseHeader() {
   const { mode } = useUniverse();
   return (
     <header className="universe-header">
-      <Link to="/" className="logo" aria-label={`${modeBrand(mode)} home`}>
-        ϟ SoraiX <small className="brand-mode">{label(mode)}</small>
-      </Link>
+      <Brand mode={mode} />
       <ModeSwitcher />
       <ThemePicker />
       <nav>
@@ -613,6 +453,8 @@ export function RelatedMedia({ id }) {
 }
 export function UniverseDetail() {
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const listenQuery = params.get("listen") === "1" ? "&listen=1" : "";
   const live = useResource(`/universe/${id}`);
   const { setMode, library, toggle, history } = useUniverse();
   const [language, setLanguage] = useState("en");
@@ -668,7 +510,7 @@ export function UniverseDetail() {
               {progress && (
                 <Link
                   className="button primary"
-                  to={`/read/${id}/${progress.chapter.id}?language=${progress.language || "en"}`}
+                  to={`/read/${id}/${progress.chapter.id}?language=${progress.language || "en"}${listenQuery}`}
                 >
                   Continue Reading
                 </Link>
@@ -676,7 +518,7 @@ export function UniverseDetail() {
               {!!books.data?.chapters.length && (
                 <Link
                   className="button primary"
-                  to={`/read/${id}/${books.data.chapters[0].id}?language=${language}&source=${books.data.source || "mangadex"}`}
+                  to={`/read/${id}/${books.data.chapters[0].id}?language=${language}&source=${books.data.source || "mangadex"}${listenQuery}`}
                 >
                   Read now
                 </Link>
@@ -750,7 +592,7 @@ export function UniverseDetail() {
               {books.data.chapters.map((c) => (
                 <Link
                   key={c.id}
-                  to={`/read/${id}/${c.id}?language=${language}&source=${books.data.source || "mangadex"}`}
+                  to={`/read/${id}/${c.id}?language=${language}&source=${books.data.source || "mangadex"}${listenQuery}`}
                 >
                   {c.title}
                   <span>Read →</span>
@@ -789,8 +631,13 @@ export function UniverseDetail() {
 }
 export function Reader() {
   const { id, chapterId } = useParams();
+  const [params] = useSearchParams();
   return (
-    <ReaderSession key={`${id}-${chapterId}`} id={id} chapterId={chapterId} />
+    <ReaderSession
+      key={`${id}-${chapterId}-${params.get("listen") === "1"}`}
+      id={id}
+      chapterId={chapterId}
+    />
   );
 }
 function ReaderSession({ id, chapterId }) {
@@ -818,6 +665,10 @@ function ReaderSession({ id, chapterId }) {
   const [layout, setLayout] = useLocal("reader-layout", "vertical");
   const [direction, setDirection] = useLocal("reader-direction", "ltr");
   const [width, setWidth] = useLocal("reader-width", 850);
+  const listenEntry = params.get("listen") === "1";
+  const listenQuery = listenEntry ? "&listen=1" : "";
+  const titleUrl = `/media/${id}${listenEntry ? "?listen=1" : ""}`;
+  const [listen, setListen] = useState(listenEntry);
   const saved = history.find(
     (h) => String(h.item.anilistId) === id && h.chapter.id === chapterId,
   );
@@ -833,7 +684,9 @@ function ReaderSession({ id, chapterId }) {
   const goChapter = (delta) => {
     const c = chapters.data?.chapters[index + delta];
     if (c)
-      navigate(`/read/${id}/${c.id}?language=${language}&source=${source}`);
+      navigate(
+        `/read/${id}/${c.id}?language=${language}&source=${source}${listenQuery}`,
+      );
   };
   useEffect(() => {
     if (chapters.data) setMode(chapters.data.item.mode);
@@ -901,9 +754,14 @@ function ReaderSession({ id, chapterId }) {
   return (
     <div className="reader">
       <div className="reader-toolbar">
-        <Link to={`/media/${id}`}>← Title</Link>
+        <Link to={titleUrl}>← Title</Link>
         <strong>{chapter?.title || "Reader"}</strong>
         <span>{chapter?.provider || chapters.data?.provider || source}</span>
+        {listenEntry && (
+          <button aria-pressed={listen} onClick={() => setListen(!listen)}>
+            Read &amp; Listen
+          </button>
+        )}
         <button
           onClick={() => {
             setFailedPages(false);
@@ -919,7 +777,7 @@ function ReaderSession({ id, chapterId }) {
             value={chapterId}
             onChange={(e) =>
               navigate(
-                `/read/${id}/${e.target.value}?language=${language}&source=auto`,
+                `/read/${id}/${e.target.value}?language=${language}&source=auto${listenQuery}`,
               )
             }
           >
@@ -966,7 +824,7 @@ function ReaderSession({ id, chapterId }) {
           value={entry?.id || chapterId}
           onChange={(e) =>
             navigate(
-              `/read/${id}/${e.target.value}?language=${language}&source=${source}`,
+              `/read/${id}/${e.target.value}?language=${language}&source=${source}${listenQuery}`,
             )
           }
         >
@@ -977,13 +835,24 @@ function ReaderSession({ id, chapterId }) {
           ))}
         </select>
       </div>
+      {listenEntry && listen && pages.length > 0 && (
+        <ChapterNarration
+          chapterId={chapterId}
+          pages={pages}
+          current={current}
+          onPage={(number) => {
+            setLayout("single");
+            setPage(number);
+          }}
+        />
+      )}
       {(failedPages || live.error) && (
         <p className="empty" role="status">
           Some pages could not load. Reload pages
           {entry?.alternatives?.length
             ? " or choose another Chapter source above."
             : "."}{" "}
-          <Link to={`/media/${id}`}>See all reading sources</Link>
+          <Link to={titleUrl}>See all reading sources</Link>
         </p>
       )}
       {!chapters.data ? (

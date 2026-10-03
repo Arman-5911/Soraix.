@@ -112,3 +112,41 @@ test("new titles are automatically discovered with deduplicated requests and no 
     global.fetch = original;
   }
 });
+
+test("English-only titles are discovered without being advertised as Hindi", async () => {
+  const { discoverEnglish } = await import("../server/hindi-discovery.mjs");
+  const original = global.fetch;
+  global.fetch = async (url) => {
+    const value = String(url);
+    if (value.includes("admin-ajax"))
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            html: '<a href="/anime/english-world/" title="English World"></a>',
+          },
+        }),
+      );
+    if (value.includes("/anime/"))
+      return new Response(
+        '<h1><span>English World</span></h1><meta property="article:tag" content="English"><a href="/watch/english-first/">Watch</a>',
+      );
+    if (value.includes("/watch/"))
+      return new Response(
+        '<a class="episode-list-item" href="/watch/english-first/"><span class="episode-list-item-number">1</span></a>',
+      );
+    return new Response('{"search_actions":"english123"}');
+  };
+  try {
+    const metadata = { title: { english: "English World" } };
+    const [english, hindi] = await Promise.all([
+      discoverEnglish("english-only-test", metadata),
+      discoverHindi("english-only-test", metadata),
+    ]);
+    assert.equal(english.episodes.length, 1);
+    assert.deepEqual(english.episodes[0].availableLanguages, ["dub"]);
+    assert.equal(hindi.episodes.length, 0);
+  } finally {
+    global.fetch = original;
+  }
+});

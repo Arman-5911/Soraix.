@@ -333,6 +333,8 @@ test("Mirror remains selectable when native Hindi stream is unavailable", async 
     route.fulfill({ contentType: "text/html", body: "<p>External player</p>" }),
   );
   await page.goto("/watch/frieren-beyond-journey-s-end-52991?audio=hi&ep=1");
+  await expect(page.getByTitle("Dub episode player")).toBeVisible();
+  await expect(page.getByRole("status").filter({hasText:"Switched to Mirror"})).toBeVisible();
   await page
     .getByLabel("Dub server")
     .selectOption("https://filesforever.link/embed/test");
@@ -871,3 +873,96 @@ for (const failure of ['missing', 'denied']) {
     expect(await page.evaluate(()=>document.body.classList.contains('player-fullscreen-open'))).toBe(false);
   });
 }
+
+test('Hindi native error switches to external once and respects manual return', async ({page}) => {
+  await page.route('**/api/media/**', route=>route.fulfill({json:{episodes:[{number:1,title:'Episode 1',provider:'direct',availableLanguages:['hi']}]}}));
+  await page.route('**/api/stream/**', route=>route.fulfill({json:{resolvedAt:'fallback-test',media:{provider:'direct',sources:[{url:'/fallback-test.mp4',type:'file',language:'Hindi',quality:'Original'}],servers:[{name:'Mirror',url:'https://filesforever.link/embed/fallback-test'}]}}}));
+  await page.route('**/fallback-test.mp4',route=>route.fulfill({contentType:'video/mp4',body:fs.readFileSync(new URL('../fixtures/playback.mp4',import.meta.url))}));
+  await page.route('https://filesforever.link/**',route=>route.fulfill({contentType:'text/html',body:'External player fixture'}));
+  await page.goto('/watch/frieren-beyond-journey-s-end-52991?audio=hi&ep=1');
+  await page.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
+  await page.getByRole('button',{name:'Fullscreen',exact:true}).click();
+  await page.waitForFunction(()=>!!document.fullscreenElement);
+  await page.locator('video').evaluate(v=>v.dispatchEvent(new Event('error')));
+  await expect(page.getByTitle('Dub episode player')).toBeVisible();
+  expect(await page.evaluate(()=>document.fullscreenElement?.classList.contains('watch-player-session'))).toBe(true);
+  await page.getByRole('button',{name:'Exit fullscreen',exact:true}).click();
+  await page.getByLabel('Dub server').selectOption('native');
+  await page.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
+  await page.locator('video').evaluate(v=>v.dispatchEvent(new Event('error')));
+  await expect(page.getByRole('button',{name:'Retry playback',exact:true})).toBeVisible();
+  await expect(page.getByTitle('Dub episode player')).toHaveCount(0);
+});
+
+test('English-only external servers open automatically and remain selectable', async ({page}) => {
+  await page.route('**/api/media/**',r=>r.fulfill({json:{episodes:[{number:1,title:'English episode',provider:'audio',availableLanguages:['dub']}]}}));
+  await page.route('**/api/stream/**',r=>r.fulfill({json:{resolvedAt:'english',media:{audio:'dub',sources:[],servers:[{name:'Mirror',url:'https://filesforever.link/embed/english-test'},{name:'Abyss',url:'https://play.abyssplayer.com/english-test'}]}}}));
+  await page.route('https://filesforever.link/**',r=>r.fulfill({contentType:'text/html',body:'English test player'}));
+  await page.route('https://play.abyssplayer.com/**',r=>r.fulfill({contentType:'text/html',body:'English alternate player'}));
+  await page.goto('/watch/frieren-beyond-journey-s-end-52991?audio=dub&ep=1');
+  await expect(page.getByRole('button',{name:'English DUB',exact:true})).toBeEnabled();
+  await expect(page.getByRole('button',{name:'Hindi DUB',exact:true})).toBeDisabled();
+  await expect(page.getByTitle('Dub episode player')).toHaveAttribute('src','https://filesforever.link/embed/english-test');
+  await expect(page.getByRole('status').filter({hasText:'Switched to Mirror'})).toContainText('English DUB');
+  await page.getByLabel('Dub server').selectOption('https://play.abyssplayer.com/english-test');
+  await expect(page.getByTitle('Dub episode player')).toHaveAttribute('src','https://play.abyssplayer.com/english-test');
+});
+
+test('SUB subtitles load from local SRT, sync, turn off and stay out of Hindi', async ({page}) => {
+ await page.route('**/api/media/**',r=>r.fulfill({json:{episodes:[{number:1,title:'Episode',provider:'audio',availableLanguages:['sub','dub','hi']}]}}));
+ await page.route('**/api/stream/**',r=>r.fulfill({json:{resolvedAt:'captions',media:{sources:[{url:'/caption-video.mp4',type:'file'}],captions:[]}}}));
+ await page.route('**/caption-video.mp4',r=>r.fulfill({contentType:'video/mp4',body:fs.readFileSync(new URL('../fixtures/playback.mp4',import.meta.url))}));
+ await page.route('**/api/subtitles/**',r=>r.fulfill({json:{captions:[]}}));
+ await page.goto('/watch/frieren-beyond-journey-s-end-52991?ep=1&audio=sub');
+ await page.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
+ await page.getByRole('button',{name:'Subtitle settings',exact:true}).click();
+ await page.getByLabel('Load subtitle file').setInputFiles({name:'english.srt',mimeType:'text/plain',buffer:Buffer.from('1\n00:00:00,100 --> 00:00:02,000\nHello SoraiX\n')});
+ await page.waitForFunction(()=>Array.from(document.querySelector('video').textTracks).some(t=>t.cues?.[0]?.text==='Hello SoraiX'&&t.mode==='showing'));
+ await page.getByLabel('Subtitle delay', {exact:true}).fill('0.5');
+ await expect.poll(()=>page.locator('video').evaluate(v=>v.textTracks[0].cues[0].startTime)).toBe(0.6);
+ await page.getByLabel('Caption track',{exact:true}).selectOption('-1');
+ await expect.poll(()=>page.locator('video').evaluate(v=>v.textTracks[0].mode)).toBe('disabled');
+ await page.getByRole('button',{name:'Find English subtitles',exact:true}).click();
+ await expect(page.getByText('No English subtitle file was found for this episode. You can load your own SRT/VTT.')).toBeVisible();
+ await page.getByRole('button',{name:'Hindi DUB',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Subtitle settings',exact:true})).toHaveCount(0);
+ await page.route('**/api/subtitles/**',r=>r.fulfill({json:{captions:[{url:'/english-auto.vtt',language:'en',label:'English'}]}}));
+ await page.route('**/english-auto.vtt',r=>r.fulfill({contentType:'text/vtt',body:'WEBVTT\n\n00:00.100 --> 00:02.000\nAutomatic English caption\n'}));
+ await page.getByRole('button',{name:'English DUB',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Subtitle settings',exact:true})).toBeVisible();
+ await page.waitForFunction(()=>Array.from(document.querySelector('video').textTracks).some(t=>t.cues?.[0]?.text==='Automatic English caption'&&t.mode==='showing'));
+ await page.setViewportSize({width:390,height:844});
+ await page.getByRole('button',{name:'Subtitle settings',exact:true}).click();
+ const panel=await page.getByRole('region',{name:'Subtitle settings panel'}).boundingBox();
+ const player=await page.locator('.hosted-player').boundingBox();
+ expect(panel.y+panel.height).toBeLessThanOrEqual(player.y+player.height);
+
+});
+
+test('SUB failures advance through backups once and ignore spoofed messages', async ({page}) => {
+ const first='https://ani.pm/embed/ani/154587/1/sub';
+ const second=first+'?hardsub=1';
+ await page.route('**/api/media/**',r=>r.fulfill({json:{episodes:[{number:1,title:'Episode',provider:'audio',availableLanguages:['sub']}]}}));
+ await page.route('**/api/stream/**',r=>r.fulfill({json:{resolvedAt:'sub-fallback',media:{sources:[{url:'/sub-test.mp4',type:'file'}],servers:[{name:'SUB backup',url:first},{name:'Burned-in SUB',url:second}]}}}));
+ await page.route('**/sub-test.mp4',r=>r.fulfill({contentType:'video/mp4',body:fs.readFileSync(new URL('../fixtures/playback.mp4',import.meta.url))}));
+ await page.route('https://ani.pm/**',r=>r.fulfill({contentType:'text/html',body:'Backup fixture'}));
+ await page.goto('/watch/frieren-beyond-journey-s-end-52991?ep=1&audio=sub');
+ await page.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
+ await page.locator('video').evaluate(v=>v.dispatchEvent(new Event('error')));
+ const player=page.getByTitle('SUB episode player');
+ await expect(player).toHaveAttribute('src',first);
+ await page.evaluate(()=>window.postMessage({ns:'anipm.player',v:1,event:'error'},'*'));
+ await expect(player).toHaveAttribute('src',first);
+ const fail=async()=>{
+   const child=page.frames().find(f=>f.url().startsWith('https://ani.pm/'));
+   await child.evaluate(()=>parent.postMessage({ns:'anipm.player',v:1,event:'error'},'*'));
+ };
+ await expect.poll(()=>page.frames().some(f=>f.url()===first)).toBe(true);
+ await fail();
+ await expect(player).toHaveAttribute('src',second);
+ await expect.poll(()=>page.frames().some(f=>f.url()===second)).toBe(true);
+ await fail();
+ await expect(page.getByRole('status').filter({hasText:'Available SUB backups could not load'})).toBeVisible();
+ await expect(player).toHaveAttribute('src',second);
+ await expect(page.getByRole('button',{name:'Try next SUB server'})).toBeDisabled();
+});

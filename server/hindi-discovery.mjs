@@ -71,7 +71,7 @@ export function searchCandidates(html, anime) {
   });
   return [...matches];
 }
-export function titleMatches(html, anime) {
+export function titleMatches(html, anime, language = "hi") {
   const $ = load(html);
   const names = new Set(
     [...Object.values(anime.title || {}), ...(anime.synonyms || [])]
@@ -85,7 +85,12 @@ export function titleMatches(html, anime) {
   const year = Number($('a[href*="/premiered/"]').first().text().trim());
   const hindi = $('meta[property="article:tag"]')
     .toArray()
-    .some((e) => $(e).attr("content")?.toLowerCase() === "hindi");
+    .some((e) =>
+      (language === "any"
+        ? ["hindi", "english"]
+        : [language === "dub" ? "english" : "hindi"]
+      ).includes($(e).attr("content")?.toLowerCase()),
+    );
   return (
     hindi &&
     actual.some((name) => names.has(name)) &&
@@ -112,7 +117,7 @@ export function parseHindiEpisodes(html) {
   });
   return [...entries.values()].sort((a, b) => a.number - b.number);
 }
-async function search(anime) {
+async function search(anime, language = "hi") {
   const nonce = await cached("search-nonce", 300000, async () => {
     const html = await readHindi(HINDI_ORIGIN + "/");
     const value = html.match(/"search_actions"\s*:\s*"([a-z0-9]+)"/)?.[1];
@@ -141,7 +146,7 @@ async function search(anime) {
     const verified = [];
     for (const url of candidates.slice(0, 3)) {
       const html = await readHindi(url);
-      if (titleMatches(html, anime)) verified.push({ url, html });
+      if (titleMatches(html, anime, language)) verified.push({ url, html });
     }
     if (verified.length === 1) return verified[0];
     if (verified.length > 1) return null;
@@ -159,13 +164,16 @@ export function hindiSearchTitles(anime) {
     ),
   ].slice(0, 4);
 }
-export async function discoverHindi(id, knownAnime) {
+async function discoverDubs(id, knownAnime) {
   if (process.env.HINDI_PROVIDER === "none") return { episodes: [] };
   return cached(`title:${id}`, 300000, async () => {
     const anime = knownAnime || (await detail(String(id))).anime;
-    const result = await search(anime);
+    const result = await search(anime, "any");
     if (!result) return { episodes: [] };
     const $ = load(result.html);
+    const hasHindi = $('meta[property="article:tag"]')
+      .toArray()
+      .some((e) => $(e).attr("content")?.toLowerCase() === "hindi");
     const hasEnglish = $('meta[property="article:tag"]')
       .toArray()
       .some((e) => $(e).attr("content")?.toLowerCase() === "english");
@@ -191,15 +199,36 @@ export async function discoverHindi(id, knownAnime) {
           hindiPage: watch,
         },
       ];
-    if (hasEnglish)
-      episodes = episodes.map((e) => ({
-        ...e,
-        availableLanguages: ["hi", "dub"],
-      }));
+    episodes = episodes.map((e) => ({
+      ...e,
+      availableLanguages: [
+        ...(hasHindi ? ["hi"] : []),
+        ...(hasEnglish ? ["dub"] : []),
+      ],
+    }));
     return {
       episodes,
       provider: "DesiDubAnime",
       discoveredAt: new Date().toISOString(),
     };
   });
+}
+
+export async function discoverHindi(id, knownAnime) {
+  const library = await discoverDubs(id, knownAnime);
+  return {
+    ...library,
+    episodes: library.episodes.filter((e) =>
+      e.availableLanguages.includes("hi"),
+    ),
+  };
+}
+export async function discoverEnglish(id, knownAnime) {
+  const library = await discoverDubs(id, knownAnime);
+  return {
+    ...library,
+    episodes: library.episodes.filter((e) =>
+      e.availableLanguages.includes("dub"),
+    ),
+  };
 }

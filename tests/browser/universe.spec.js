@@ -236,3 +236,74 @@ test("vertical reader restores the last visible page", async ({ page }) => {
   await expect(page.locator(".reader-bottom")).toContainText("3 / 4");
   await expect(page.locator('[data-reader-page="2"]')).toBeInViewport();
 });
+
+test('branding follows every content mode with distinct colors', async ({page}) => {
+  await page.goto('/');
+  const colors = new Set();
+  for (const mode of ['anime','manga','manhwa','manhua','donghua']) {
+    await page.getByLabel('Content mode').first().selectOption(mode);
+    await expect(page.locator('html')).toHaveAttribute('data-content-mode', mode);
+    const brand=page.locator('.soraix-brand').first();
+    await expect(brand).toHaveAttribute('data-brand-mode', mode);
+    await expect(brand.locator('.brand-mode')).toHaveText(new RegExp(mode,'i'));
+    colors.add(await brand.evaluate(el=>getComputedStyle(el).getPropertyValue('--brand-color').trim()));
+    await expect(brand.locator('.soraix-wordmark')).toHaveCSS('font-family', /SoraiX Display/);
+  }
+  expect(colors.size).toBe(5);
+});
+
+test('Read and Listen discovery, AI transcript, audio sync and key isolation', async ({page}) => {
+ await page.addInitScript(()=>{
+   const voice={name:'English test voice',lang:'en-US',voiceURI:'test-en'};
+   window.__spoken=[];
+   Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{getVoices:()=>[voice],addEventListener(){},removeEventListener(){},speak(u){window.__spoken.push(u.text);u.onstart?.();},cancel(){window.__cancelled=(window.__cancelled||0)+1;},pause(){},resume(){}}});
+   window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+ });
+ let requests=0;
+ await page.route('https://generativelanguage.googleapis.com/**',route=>{
+   requests++;
+   expect(route.request().headers()['x-goog-api-key']).toBe('test-session-secret');
+   const body=route.request().postDataJSON();
+   expect(body.contents[0].parts[1].inline_data.data.length).toBeGreaterThan(0);
+   return route.fulfill({json:{candidates:[{content:{parts:[{text:'A traveller discovers a new world.'}]}}]}});
+ });
+ await page.goto('/');
+ await page.getByLabel('Content mode').selectOption('listen');
+ await expect(page).toHaveURL(/read-listen/);
+ await page.getByLabel('Find a story').fill('A New World');
+ await page.getByRole('button',{name:'Find chapters'}).click();
+ await page.getByRole('link',{name:/A New World/}).first().click();
+ await page.getByRole('link',{name:'Read now',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Read and listen controls'})).toBeVisible();
+ await page.getByLabel('Narration mode').selectOption('ai');
+ await page.getByLabel('Gemini API key').fill('test-session-secret');
+ expect(requests).toBe(0);
+ await page.getByRole('button',{name:'Prepare this page',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Preparation finished'})).toBeVisible();
+ expect(requests).toBe(1);
+ await page.getByText(/Page 1 transcript/).click();
+ await expect(page.getByLabel('Page narration transcript')).toHaveValue('A traveller discovers a new world.');
+ await page.getByRole('button',{name:'Listen to page',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__spoken.length)).toBeGreaterThan(0);
+ await expect(page.getByLabel('Reading layout')).toHaveValue('single');
+ expect(await page.evaluate(()=>JSON.stringify(localStorage).includes('test-session-secret'))).toBe(false);
+ await page.getByRole('button',{name:'Prepare this page',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Preparation finished'})).toBeVisible();
+ expect(requests).toBe(1);
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+ await page.getByLabel('Select chapter').selectOption('chapter-b');
+ await expect(page).toHaveURL(/listen=1/);
+ await expect(page.getByLabel('Gemini API key')).toHaveValue('');
+ await page.getByText(/Page 1 transcript/).click();
+ await expect(page.getByLabel('Page narration transcript')).toHaveValue('');
+ await page.reload();
+ await expect(page.getByRole('region',{name:'Read and listen controls'})).toBeVisible();
+ await page.evaluate(()=>localStorage.setItem('soraix-reader-listen','true'));
+ await page.getByLabel('Content mode').selectOption('manga');
+ await page.goto('/media/30104');
+ await page.getByRole('link',{name:'Read now',exact:true}).click();
+ await expect(page.getByLabel('Select chapter')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Read & Listen',exact:true})).toHaveCount(0);
+ await expect(page.getByRole('region',{name:'Read and listen controls'})).toHaveCount(0);
+});

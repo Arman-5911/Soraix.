@@ -23,6 +23,7 @@ const Watch = lazy(() => import("./pages/Watch"));
 const Library = lazy(() => import("./pages/Library"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const Info = lazy(() => import("./pages/Info"));
+const ReadListen = lazy(() => import("./ReadListen"));
 export default function App() {
   const { mode } = useUniverse();
   const location = useLocation();
@@ -55,7 +56,10 @@ export default function App() {
             .slice(1)
             .replaceAll("-", " ")
             .replace(/\b\w/g, (s) => s.toUpperCase());
-    document.title = location.pathname === "/" ? modeBrand(mode) : `${modeBrand(mode)} | ${label}`;
+    document.title =
+      location.pathname === "/"
+        ? modeBrand(mode)
+        : `${modeBrand(mode)} | ${label}`;
     const description = a
       ? a.description.slice(0, 155)
       : "Discover extraordinary anime, save your watchlist, and find your next favorite story. All on SoraiX.";
@@ -114,6 +118,7 @@ export default function App() {
       <main id="main">
         <Suspense key={location.pathname} fallback={<Skeleton />}>
           <Routes>
+            <Route path="read-listen" element={<ReadListen />} />
             <Route
               path="/"
               element={mode === "anime" ? <Home /> : <UniverseHome />}

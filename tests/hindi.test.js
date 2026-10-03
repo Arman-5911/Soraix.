@@ -44,9 +44,40 @@ test("Hindi discovery can be disabled without upstream requests", async () => {
   process.env.HINDI_PROVIDER = "none";
   try {
     assert.deepEqual(await hindiLibrary(52991), { episodes: [] });
-    await assert.rejects(() => resolveHindi(52991, 1), /unavailable/);
+    await assert.rejects(() => resolveHindi(52991, 1), /not available/);
   } finally {
     if (old === undefined) delete process.env.HINDI_PROVIDER;
     else process.env.HINDI_PROVIDER = old;
   }
+});
+
+test("dub server discovery handles iframe payloads and current Abyss host", () => {
+  const option = (name, value) =>
+    `<span data-embed-id="dub:${Buffer.from(value).toString("base64")}">${name}</span>`;
+  const html =
+    option(
+      "Streamp2p",
+      "<iframe src='https://desidubanime.p2pplay.pro/#episode'></iframe>",
+    ) +
+    option("Abyss", "https://play.abyssplayer.com/episode") +
+    option("English backup", "https://vidmoly.org/embed-english.html") +
+    option(
+      "Unsafe",
+      "<iframe src='https://play.abyssplayer.com.evil.test/a'></iframe>",
+    );
+  assert.deepEqual(
+    extractDubServers(html).map((s) => s.name),
+    ["Streamp2p", "Abyss"],
+  );
+  assert.deepEqual(
+    extractDubServers(html, "dub").map((s) => s.name),
+    ["English backup"],
+  );
+});
+
+test("generic dub server labels are usable only with English-only title evidence", () => {
+  const url = "https://filesforever.link/embed/english";
+  const html = `<span data-embed-id="dub:${Buffer.from(url).toString("base64")}">Mirror</span>`;
+  assert.equal(extractDubServers(html, "dub").length, 0);
+  assert.equal(extractDubServers(html, "dub", true)[0].url, url);
 });

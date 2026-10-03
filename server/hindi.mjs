@@ -2,8 +2,13 @@ import { load } from "cheerio";
 import { ApiError } from "./anilist.mjs";
 import { deliveryUrl, dubUrl } from "./dub-delivery.mjs";
 
-import { discoverHindi, readHindi as read } from "./hindi-discovery.mjs";
+import {
+  discoverHindi,
+  discoverEnglish,
+  readHindi as read,
+} from "./hindi-discovery.mjs";
 export const hindiLibrary = discoverHindi;
+export const englishLibrary = discoverEnglish;
 
 export function extractVidmoly(html) {
   for (const match of html.matchAll(/data-embed-id="[^"]*:([^"\s]+)"/g)) {
@@ -19,24 +24,37 @@ export function extractVidmoly(html) {
   }
   return null;
 }
-export function extractDubServers(html) {
+export function extractDubServers(html, language = "hi", englishOnly = false) {
   const $ = load(html),
     servers = new Map();
   const hosts = new Set([
     "filesforever.link",
     "desidubanime.p2pplay.pro",
     "player.abyssplayer.com",
+    "play.abyssplayer.com",
     "vidmoly.org",
   ]);
   $("[data-embed-id]").each((_, el) => {
     const node = $(el);
     try {
+      const decoded = Buffer.from(
+        node.attr("data-embed-id").split(":")[1] || "",
+        "base64",
+      )
+        .toString("utf8")
+        .trim();
+      // Some published options contain an iframe, not a bare URL.
+      // Extract only its src; never render provider HTML in our page.
       const url = new URL(
-        Buffer.from(
-          node.attr("data-embed-id").split(":")[1] || "",
-          "base64",
-        ).toString("utf8"),
+        decoded.startsWith("<")
+          ? load(decoded)("iframe").first().attr("src")
+          : decoded,
       );
+      const name = node.text().trim() || url.hostname;
+      const english = /\b(english|eng)\b/i.test(name);
+      if (language === "dub" && !english && !englishOnly) return;
+      if (language === "hi" && english && !/\b(hindi|multi)\b/i.test(name))
+        return;
       if (
         url.protocol !== "https:" ||
         !hosts.has(url.hostname) ||
@@ -48,7 +66,7 @@ export function extractDubServers(html) {
       if (!servers.has(url.href))
         servers.set(url.href, {
           url: url.href,
-          name: node.text().trim() || url.hostname,
+          name,
         });
     } catch {}
   });
@@ -58,14 +76,21 @@ export async function resolveHindi(id, number, language = "hi") {
   if (!["hi", "dub"].includes(language))
     throw new ApiError("Invalid dub language.", 400);
   const track = language === "dub" ? "en" : "hi";
-  const library = await hindiLibrary(id);
+  const library = await (language === "dub"
+    ? englishLibrary(id)
+    : hindiLibrary(id));
   if (!library.episodes.some((e) => e.number === number))
-    throw new ApiError("Hindi dub is unavailable for this episode.", 404);
+    throw new ApiError(`${track === "en" ? "English" : "Hindi"} dub is not available for this episode.`, 404);
   const page = await read(
     library.episodes.find((e) => e.number === number).hindiPage,
   );
   const embed = extractVidmoly(page);
-  const servers = language === "hi" ? extractDubServers(page) : [];
+  const entry = library.episodes.find((e) => e.number === number);
+  const servers = extractDubServers(
+    page,
+    language,
+    language === "dub" && !entry.availableLanguages.includes("hi"),
+  );
   try {
     if (!embed)
       throw new ApiError(
@@ -91,6 +116,13 @@ export async function resolveHindi(id, number, language = "hi") {
       !new RegExp(`TYPE=AUDIO[^\\n]*LANGUAGE="${track}"`).test(manifest)
     )
       throw new ApiError("This stream has no verified Hindi audio track.", 404);
+    if (language === "dub" && !servers.some((server) => server.url === embed)) {
+      servers.push({
+        name: "Vidmoly · English / multi-audio",
+        url: embed,
+        audioSelection: "manual",
+      });
+    }
     return {
       episode: number,
       provider: "DesiDubAnime / Vidmoly",

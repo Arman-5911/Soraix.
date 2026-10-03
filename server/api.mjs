@@ -1,4 +1,5 @@
 import { directLibrary, resolveEpisode } from "./streaming.mjs";
+import { subBackupLibrary, subBackupServers } from "./sub-backup.mjs";
 import { readerImage } from "./reading-sources.mjs";
 import { deliverDub } from "./dub-delivery.mjs";
 import { pipeline } from "node:stream/promises";
@@ -10,7 +11,7 @@ import {
   chapterPages,
   readyToRead,
 } from "./universe.mjs";
-import { hindiLibrary, resolveHindi } from "./hindi.mjs";
+import { hindiLibrary, englishLibrary, resolveHindi } from "./hindi.mjs";
 import fs from "node:fs/promises";
 import {
   ApiError,
@@ -79,16 +80,33 @@ export async function mediaLibrary(id) {
   };
 }
 export async function availableMedia(id, anime) {
-  const [base, hindi] = await Promise.allSettled([
+  const [base, hindi, english, backup] = await Promise.allSettled([
     baseMedia(id, anime),
     hindiLibrary(id, anime),
+    englishLibrary(id, anime),
+    subBackupLibrary(id),
   ]);
   if (
     base.status === "rejected" &&
-    !(hindi.status === "fulfilled" && hindi.value.episodes.length)
+    !(hindi.status === "fulfilled" && hindi.value.episodes.length) &&
+    !(english.status === "fulfilled" && english.value.episodes.length) &&
+    !(backup.status === "fulfilled" && backup.value.episodes.length)
   )
     throw base.reason;
-  const media = base.status === "fulfilled" ? base.value : { episodes: [] };
+  let media = base.status === "fulfilled" ? base.value : { episodes: [] };
+  if (backup.status === "fulfilled" && backup.value.episodes.length)
+    media = {
+      ...media,
+      ...mergeAudioLibraries(backup.value, media),
+      provider: "SoraiX sources",
+    };
+  if (english.status === "fulfilled" && english.value.episodes.length) {
+    media = {
+      ...media,
+      ...mergeAudioLibraries(english.value, media),
+      provider: "SoraiX sources",
+    };
+  }
   if (hindi.status === "fulfilled" && hindi.value.episodes.length) {
     return {
       ...media,
@@ -158,16 +176,32 @@ export async function resolveMedia(id, number, language) {
       },
     };
   if (language === "hi") return resolveHindi(id, number);
-  if (language === "dub") {
-    try {
-      return await resolveEpisode(id, number, language);
-    } catch (originalError) {
-      try {
-        return await resolveHindi(id, number, "dub");
-      } catch {
-        throw originalError;
-      }
-    }
+  if (language === "dub") return resolveHindi(id, number, "dub");
+  if (language === "sub") {
+    const [primary, backups] = await Promise.allSettled([
+      resolveEpisode(id, number, "sub"),
+      subBackupServers(id, number),
+    ]);
+    const servers = backups.status === "fulfilled" ? backups.value : [];
+    if (primary.status === "fulfilled")
+      return {
+        ...primary.value,
+        media: { ...primary.value.media, servers },
+      };
+    if (servers.length)
+      return {
+        episode: number,
+        provider: "Ani.pm",
+        resolvedAt: new Date().toISOString(),
+        media: {
+          provider: "direct",
+          audio: "sub",
+          sources: [],
+          captions: [],
+          servers,
+        },
+      };
+    throw primary.reason;
   }
   return resolveEpisode(id, number, language);
 }
@@ -187,6 +221,17 @@ export async function apiHandler(req, res, next) {
   }
   try {
     let value;
+    if (/^\/api\/subtitles\/(?:\d+|al\d+)\/\d+(?:\.\d+)?$/.test(url.pathname)) {
+      const parts = url.pathname.split("/");
+      const result = await resolveMedia(parts[3], Number(parts[4]), "sub");
+      res.end(
+        JSON.stringify({
+          captions: result.media.captions || [],
+          source: "SUB episode",
+        }),
+      );
+      return true;
+    }
     if (url.pathname === "/api/dub-media") {
       const media = await deliverDub(url.searchParams.get("token"));
       res.setHeader("Content-Type", media.type);

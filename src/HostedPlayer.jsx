@@ -10,6 +10,7 @@ import {
 import { useApp, useLocal } from "./store";
 import { IconButton } from "./components";
 import { togglePlayerFullscreen } from "./playerFullscreen";
+import SubtitleControls from "./SubtitleControls";
 export default function HostedPlayer({
   anime,
   episode,
@@ -18,6 +19,7 @@ export default function HostedPlayer({
   controllerRef,
   initialPlayback,
   fullscreenRef,
+  onPlaybackFailure,
 }) {
   const { history, saveProgress, notify } = useApp();
   const video = useRef(null),
@@ -45,6 +47,9 @@ export default function HostedPlayer({
     [autoNext, setAutoNext] = useLocal("auto-next", true),
     [skipIntro, setSkipIntro] = useLocal("skip-intro", true);
   const media = episode.media;
+  useEffect(() => {
+    if (error) onPlaybackFailure?.();
+  }, [error, onPlaybackFailure]);
   const skipped = useRef(false),
     advanced = useRef(false);
   const [intro, setIntro] = useState(null);
@@ -160,6 +165,24 @@ export default function HostedPlayer({
       selected = media.sources[source];
     let disposed = false,
       instance;
+    let loadTimer;
+    const clearLoadTimer = () => clearTimeout(loadTimer);
+    const waitForMedia = () => {
+      clearLoadTimer();
+      loadTimer = setTimeout(() => {
+        if (!disposed && !v.ended) setError(true);
+      }, 20000);
+    };
+    const buffering = () => {
+      if (!v.paused) waitForMedia();
+    };
+    if (onPlaybackFailure) {
+      waitForMedia();
+      v.addEventListener("loadeddata", clearLoadTimer);
+      v.addEventListener("playing", clearLoadTimer);
+      v.addEventListener("pause", clearLoadTimer);
+      v.addEventListener("waiting", buffering);
+    }
     setError(false);
     setLevels([]);
     setQuality(-1);
@@ -204,6 +227,11 @@ export default function HostedPlayer({
     });
     return () => {
       disposed = true;
+      clearLoadTimer();
+      v.removeEventListener("loadeddata", clearLoadTimer);
+      v.removeEventListener("playing", clearLoadTimer);
+      v.removeEventListener("pause", clearLoadTimer);
+      v.removeEventListener("waiting", buffering);
       persist(v);
       instance?.destroy();
       hls.current = null;
@@ -316,21 +344,36 @@ export default function HostedPlayer({
             }
           }}
         >
-          {(media.captions || []).map((c, index) => (
-            <track
-              key={c.url}
-              kind="captions"
-              src={c.url}
-              srcLang={c.language}
-              label={c.label}
-              default={
-                c.language === "en" &&
-                !media.captions.slice(0, index).some((t) => t.language === "en")
-              }
-            />
-          ))}
+          {(media.audio === "hi" ? [] : media.captions || []).map(
+            (c, index) => (
+              <track
+                key={c.url}
+                kind="captions"
+                src={c.url}
+                srcLang={c.language}
+                label={c.label}
+                default={
+                  c.language === "en" &&
+                  !media.captions
+                    .slice(0, index)
+                    .some((t) => t.language === "en")
+                }
+              />
+            ),
+          )}
         </video>
-        <button className="fullscreen-fit-button" onClick={() => setFillScreen(value => !value)}>
+        {["sub", "dub"].includes(media.audio || "sub") && (
+          <SubtitleControls
+            video={video}
+            animeId={anime.id}
+            episode={episode.number}
+            audio={media.audio || "sub"}
+          />
+        )}
+        <button
+          className="fullscreen-fit-button"
+          onClick={() => setFillScreen((value) => !value)}
+        >
           {fillScreen ? "Fit video" : "Fill screen"}
         </button>
         <button

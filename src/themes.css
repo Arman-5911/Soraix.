@@ -681,3 +681,146 @@
   :root .desktop-nav { order: 5; flex-basis: 100%; justify-content: center; }
   :root .header-search { flex: 1; min-width: 120px; }
 }
+:root[data-theme="glass"] select {
+  color-scheme: dark;
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid #dceaff35;
+  border-radius: 16px;
+  padding: 11px 14px;
+  color: #eef5ff;
+  background: linear-gradient(145deg, #d5e6ff1c, #b9d5ff08), #141c2be8;
+  box-shadow: inset 0 1px 0 #ffffff25, 0 6px 20px #0003;
+  backdrop-filter: blur(24px) saturate(160%);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+:root[data-theme="glass"] select:hover { border-color: #c8deff70; }
+:root[data-theme="glass"] select:focus-visible { outline: 2px solid #a9caff; outline-offset: 3px; }
+:root[data-theme="glass"] select:disabled { opacity: .5; cursor: not-allowed; }
+:root[data-theme="glass"] select option { color: #edf4ff; background: #182132; }
+@supports (appearance: base-select) {
+  :root[data-theme="glass"] select,
+  :root[data-theme="glass"] select::picker(select) { appearance: base-select; }
+  :root[data-theme="glass"] select::picker(select) {
+    color-scheme: dark;
+    border: 1px solid #dceaff40;
+    border-radius: 18px;
+    padding: 6px;
+    margin-block: 8px;
+    max-height: min(360px, 60dvh);
+    overflow-y: auto;
+    background: linear-gradient(145deg, #dceaff18, #c5d9ff06), #101827ee;
+    backdrop-filter: blur(28px) saturate(170%);
+    box-shadow: inset 0 1px #ffffff22, 0 18px 55px #0009;
+  }
+  :root[data-theme="glass"] select option {
+    min-height: 42px; padding: 10px 12px; gap: 10px;
+    border-radius: 12px; background: transparent; line-height: 1.5;
+  }
+  :root[data-theme="glass"] select option:is(:hover, :focus) { background: #d0e2ff18; }
+  :root[data-theme="glass"] select option:checked { color: #fff; background: #aacbff28; }
+  :root[data-theme="glass"] select option:disabled { opacity: .45; }
+  :root[data-theme="glass"] select::picker-icon { color: #b8cff0; transition: rotate .2s ease; }
+  :root[data-theme="glass"] select:open::picker-icon { rotate: 180deg; }
+}
+
+:root .logo.soraix-brand { gap: 11px; text-decoration: none; min-height: 48px; }
+:root .soraix-brand .soraix-mark { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 14px; filter: drop-shadow(0 4px 10px #6999ff26); transition: transform .45s cubic-bezier(.2,.8,.2,1), filter .45s ease; }
+:root .soraix-brand > .soraix-lockup { display: flex; flex-direction: column; gap: 3px; font-size: inherit; letter-spacing: normal; }
+:root .soraix-wordmark { display: block; font-family: "Manrope", sans-serif; font-size: 27px; font-weight: 850; font-style: italic; letter-spacing: -1.3px; line-height: 1; color: #f0f5ff; }
+:root .soraix-letter-x { display: inline-block; padding-right: 3px; margin-left: 1px; background: linear-gradient(130deg,#adfff0 8%,#82cfff 40%,#b1a0ff 70%,#f2b5ff); background-size: 180% 180%; background-clip: text; -webkit-background-clip: text; color: transparent; }
+:root .soraix-brand .brand-mode { font-size: 9px; font-weight: 650; line-height: 1.2; text-transform: uppercase; letter-spacing: .24em; color: #a6b7d1; margin: 0; }
+@media (hover:hover) {
+  :root .soraix-brand:hover .soraix-mark { transform: rotate(-7deg) translateY(-2px); filter: drop-shadow(0 5px 13px #91bbff66); }
+  :root .soraix-brand:hover .soraix-letter-x { animation: soraix-flow 1.6s ease-in-out infinite alternate; }
+}
+@keyframes soraix-flow { to { background-position: 100% 100%; transform: skewX(-5deg); } }
+@media (max-width:600px) {
+  :root .logo.soraix-brand { gap: 8px; }
+  :root .soraix-brand .soraix-mark { width: 38px; height: 38px; }
+  :root .soraix-wordmark { font-size: 24px; }
+  :root .soraix-brand .brand-mode { font-size: 8px; letter-spacing: .18em; }
+}
+@media (prefers-reduced-motion:reduce) {
+  :root .soraix-brand .soraix-mark, :root .soraix-brand .soraix-letter-x { animation: none; transition: none; transform: none; }
+}
+
+@font-face { font-family: "SoraiX Display"; src: url("/fonts/Rajdhani-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }
+:root, [data-brand-mode="anime"] { --brand-color: #72d5ff; --brand-light: #dbf8ff; --brand-deep: #6276ff; }
+:root[data-content-mode="manga"], [data-brand-mode="manga"] { --brand-color: #ff9fbb; --brand-light: #ffe1eb; --brand-deep: #ef527f; }
+:root[data-content-mode="manhwa"], [data-brand-mode="manhwa"] { --brand-color: #bfa1ff; --brand-light: #f0e3ff; --brand-deep: #8762f4; }
+:root[data-content-mode="manhua"], [data-brand-mode="manhua"] { --brand-color: #68e1bf; --brand-light: #d5fff0; --brand-deep: #1caf98; }
+:root[data-content-mode="donghua"], [data-brand-mode="donghua"] { --brand-color: #ffc077; --brand-light: #fff0d2; --brand-deep: #f47d4e; }
+:root[data-content-mode] { --accent: var(--brand-color); --accent-bright: var(--brand-light); }
+:root .soraix-brand .soraix-wordmark {
+  font-family: "SoraiX Display", sans-serif; font-size: 32px; font-weight: 700; font-style: normal;
+  text-transform: uppercase; letter-spacing: .025em; line-height: .95;
+  background: linear-gradient(120deg,var(--brand-light),var(--brand-color));
+  background-clip: text; -webkit-background-clip: text; color: transparent;
+  transform: skewX(-8deg); transform-origin: left center; padding-right: 5px;
+}
+:root .soraix-brand .soraix-letter-x { background: none; color: var(--brand-color); margin-left: 2px; }
+:root .soraix-brand .brand-mode {
+  color: var(--brand-light); background: color-mix(in srgb,var(--brand-color) 12%,transparent);
+  border: 1px solid color-mix(in srgb,var(--brand-color) 30%,transparent);
+  border-radius: 5px; padding: 3px 6px; align-self: flex-start;
+  font-size: 8px; font-weight: 700; letter-spacing: .18em; line-height: 1;
+}
+:root .soraix-brand > .soraix-lockup { gap: 6px; }
+:root .soraix-brand .soraix-mark { filter: drop-shadow(0 4px 10px color-mix(in srgb,var(--brand-color) 25%,transparent)); }
+:root .soraix-brand:hover .soraix-mark { filter: drop-shadow(0 4px 13px color-mix(in srgb,var(--brand-color) 45%,transparent)); }
+:root :is(.mode-switcher select, .desktop-nav a.active, .universe-header nav a.active) { border-color: color-mix(in srgb,var(--brand-color) 40%,transparent); color: var(--brand-light); }
+@media(max-width:600px) { :root .soraix-brand .soraix-wordmark { font-size: 28px; } }
+
+/* Use the browser picker arrow only when the glass picker is supported. */
+@supports (appearance: base-select) {
+  :root[data-theme="glass"] .mode-switcher::after { content: none; }
+}
+:root[data-theme="glass"] .subnav {
+  width: calc(100% - 24px); max-width: 1576px; min-height: 58px;
+  margin: 10px auto 0; padding: 6px 14px; gap: 20px;
+  border: 1px solid #dceaff26; border-radius: 22px;
+  background: linear-gradient(135deg,#dceaff13,#111925c9);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
+  box-shadow: inset 0 1px #ffffff15, inset 0 -1px #ffffff08, 0 8px 26px #0002;
+}
+:root[data-theme="glass"] .subnav nav { gap: 6px; min-width: 0; }
+:root[data-theme="glass"] .subnav nav a {
+  min-height: 44px; padding: 10px 14px; border: 1px solid transparent;
+  border-radius: 16px; color: #b9c6db; flex-shrink: 0;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+:root[data-theme="glass"] .subnav nav a:hover { background: #dceaff12; color: #f2f7ff; border-color: #dceaff20; }
+:root[data-theme="glass"] .subnav nav a.active {
+  color: var(--brand-light); background: linear-gradient(140deg,color-mix(in srgb,var(--brand-color) 22%,transparent),#dceaff08);
+  border-color: color-mix(in srgb,var(--brand-color) 35%,transparent);
+  box-shadow: inset 0 1px #ffffff25, 0 3px 10px #0002;
+}
+@media(max-width:1200px) { :root[data-theme="glass"] .subnav { overflow-x: auto; scrollbar-width: thin; } }
+@media(max-width:600px) {
+  :root[data-theme="glass"] .subnav { width: calc(100% - 16px); padding: 5px 8px; border-radius: 18px; }
+  :root[data-theme="glass"] .subnav nav a { padding: 10px 12px; }
+}
+
+/* Keep the content icon and label comfortable in native and glass pickers. */
+:root .mode-switcher select { width: 146px; min-width: 136px; }
+:root[data-theme="glass"] .mode-switcher option { word-spacing: 4px; }
+@media(max-width:600px) { :root .mode-switcher select { width: 138px; min-width: 132px; } }
+
+.subtitle-tools { position:absolute; top:64px; right:12px; z-index:6; }
+.subtitle-toggle { display:grid; place-items:center; width:44px; height:44px; color:#edf5ff; border:1px solid #ffffff40; border-radius:12px; background:#101725de; cursor:pointer; }
+.subtitle-panel { position:absolute; top:50px; right:0; width:min(320px,calc(100vw - 64px)); max-height:min(400px,60dvh); overflow:auto; padding:16px; border:1px solid #dceaff40; border-radius:18px; color:#edf5ff; background:#101827f5; backdrop-filter:blur(22px); box-shadow:0 12px 36px #0008; }
+.subtitle-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.subtitle-panel label { display:grid; gap:7px; margin-block:10px; font-size:12px; }
+.subtitle-panel :is(button,select,input) { min-height:36px; padding:8px; border:1px solid #ffffff30; border-radius:10px; color:inherit; background:#ffffff0c; max-width:100%; }
+.subtitle-panel p { font-size:11px; line-height:1.5; margin:10px 0; color:#c3cee0; }
+.subtitle-panel input[type=file] { width:100%; font-size:11px; }
+.subtitle-panel button { cursor:pointer; }
+@media(max-height:500px) { .subtitle-panel { top:0; right:52px; max-height:calc(100dvh - 90px); } }
+.subtitle-tools { inset: 0; pointer-events: none; }
+.subtitle-toggle { position: absolute; top: 64px; right: 12px; pointer-events: auto; }
+.subtitle-panel { top: 12px; right: 64px; width: min(320px, calc(100% - 84px)); max-height: calc(100% - 24px); box-sizing: border-box; pointer-events: auto; }

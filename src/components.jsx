@@ -1,3 +1,4 @@
+import Brand from "./Brand";
 import ThemePicker, { THEMES } from "./ThemePicker";
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -34,21 +35,9 @@ export const IconButton = ({ label, children, ...props }) => (
 );
 export function Logo() {
   const { mode } = useUniverse();
-  return (
-    <Link to="/" className="logo" aria-label={`${modeBrand(mode)} home`}>
-      <svg viewBox="0 0 32 38" aria-hidden="true">
-        <path d="M21 1 2 22h14l-5 15L31 14H17z" fill="currentColor" />
-      </svg>
-      <span>
-        SoraiX{" "}
-        <small className="brand-mode">
-          {mode[0].toUpperCase() + mode.slice(1)}
-        </small>
-        <i />
-      </span>
-    </Link>
-  );
+  return <Brand mode={mode} />;
 }
+
 export function Poster({ a, ...props }) {
   const [loaded, setLoaded] = useState(false);
   return (
@@ -390,7 +379,7 @@ export function Header() {
       </header>
       <div className="subnav">
         <nav>
-          {navItems.slice(3).map(([name, url]) => (
+          {[...navItems.slice(3), ["Recently Updated", "/recently-updated"], ["Recently Added", "/recently-added"], ["Completed", "/completed"], ["Genres", "/genres"]].map(([name, url]) => (
             <Link
               key={url}
               className={location.pathname === url ? "active" : ""}
@@ -399,10 +388,6 @@ export function Header() {
               {name}
             </Link>
           ))}
-          <Link to="/recently-updated">Recently Updated</Link>
-          <Link to="/recently-added">Recently Added</Link>
-          <Link to="/completed">Completed</Link>
-          <Link to="/genres">Genres</Link>
         </nav>
         <span>
           <i /> A whole world of anime. Yours to explore.
