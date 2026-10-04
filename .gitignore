@@ -6,3 +6,8 @@ playwright-report/
 
 .env
 private/
+.env.*
+!.env.example
+.vercel/
+*.pem
+*.key

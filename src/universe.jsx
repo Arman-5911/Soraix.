@@ -21,6 +21,8 @@ import "./universe.css";
 import ThemePicker from "./ThemePicker";
 import GlassWidgets from "./GlassWidgets";
 import ChapterNarration from "./ChapterNarration";
+import { READ_LISTEN_ENABLED } from "./features";
+import { ReadListenNotice } from "./ComingSoon";
 export const MODES = ["anime", "manga", "manhwa", "manhua", "donghua"];
 const MODE_ICONS = {
   anime: "🎬",
@@ -63,6 +65,7 @@ export function UniverseProvider({ children }) {
 }
 export const useUniverse = () => useContext(Context);
 export function ModeSwitcher() {
+  const [notice, setNotice] = useState(false);
   const { mode, setMode } = useUniverse();
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,13 +74,18 @@ export function ModeSwitcher() {
       <select
         aria-label="Content mode"
         value={
-          location.pathname === "/read-listen" ||
-          new URLSearchParams(location.search).get("listen") === "1"
+          READ_LISTEN_ENABLED &&
+          (location.pathname === "/read-listen" ||
+            new URLSearchParams(location.search).get("listen") === "1")
             ? "listen"
             : mode
         }
         onChange={(e) => {
           if (e.target.value === "listen") {
+            if (!READ_LISTEN_ENABLED) {
+              setNotice(true);
+              return;
+            }
             navigate("/read-listen");
             return;
           }
@@ -90,8 +98,11 @@ export function ModeSwitcher() {
             {MODE_ICONS[m]} {label(m)}
           </option>
         ))}
-        <option value="listen">🎧 Read &amp; Listen</option>
+        <option value="listen">
+          🎧 Read &amp; Listen{!READ_LISTEN_ENABLED ? " · Soon" : ""}
+        </option>
       </select>
+      {notice && <ReadListenNotice onClose={() => setNotice(false)} />}
     </div>
   );
 }
@@ -454,7 +465,8 @@ export function RelatedMedia({ id }) {
 export function UniverseDetail() {
   const { id } = useParams();
   const [params] = useSearchParams();
-  const listenQuery = params.get("listen") === "1" ? "&listen=1" : "";
+  const listenQuery =
+    READ_LISTEN_ENABLED && params.get("listen") === "1" ? "&listen=1" : "";
   const live = useResource(`/universe/${id}`);
   const { setMode, library, toggle, history } = useUniverse();
   const [language, setLanguage] = useState("en");
@@ -665,7 +677,7 @@ function ReaderSession({ id, chapterId }) {
   const [layout, setLayout] = useLocal("reader-layout", "vertical");
   const [direction, setDirection] = useLocal("reader-direction", "ltr");
   const [width, setWidth] = useLocal("reader-width", 850);
-  const listenEntry = params.get("listen") === "1";
+  const listenEntry = READ_LISTEN_ENABLED && params.get("listen") === "1";
   const listenQuery = listenEntry ? "&listen=1" : "";
   const titleUrl = `/media/${id}${listenEntry ? "?listen=1" : ""}`;
   const [listen, setListen] = useState(listenEntry);

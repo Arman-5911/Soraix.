@@ -11,10 +11,13 @@ import { useApp, useLocal } from "./store";
 import { IconButton } from "./components";
 import { togglePlayerFullscreen } from "./playerFullscreen";
 import SubtitleControls from "./SubtitleControls";
+import EpisodeControls from "./EpisodeControls";
+
 export default function HostedPlayer({
   anime,
   episode,
   onNext,
+  onPrevious,
   onRetry,
   controllerRef,
   initialPlayback,
@@ -281,6 +284,7 @@ export default function HostedPlayer({
   return (
     <>
       <div className="video-player hosted-player">
+        <EpisodeControls onPrevious={onPrevious} onNext={onNext} />
         <video
           ref={video}
           style={{ objectFit: fillScreen ? "cover" : "contain" }}

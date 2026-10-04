@@ -1,0 +1,272 @@
+/* Reflective dark surfaces. Static lighting keeps scrolling inexpensive. */
+:root[data-theme="glass"] {
+  --bg: #060910;
+  --surface: #101722;
+  --raised: #192331;
+  --muted: #a4b3c8;
+  --glass-edge: #dcecff29;
+  --glass-fill: linear-gradient(145deg, #d9ecff14, #9dbfe905 48%, #02060d38), #101824eb;
+  --glass-shadow: inset 0 1px 0 #f0f7ff26, inset 0 -1px 0 #03060d99, 0 10px 28px #0004;
+  --fluid-ease: cubic-bezier(.2,.75,.25,1);
+  color-scheme: dark;
+}
+:root[data-theme="glass"] body {
+  background: radial-gradient(ellipse 75% 580px at 8% 0, #517eac24, transparent 75%), radial-gradient(ellipse 60% 800px at 100% 30%, #665c9f12, transparent 80%), #060910;
+}
+:root[data-theme="glass"] :is(.header, .universe-header, .subnav) {
+  background: linear-gradient(120deg, #e1eeff12, #90aed904 45%, #d4e6ff08), #0b121ee8;
+  border-color: var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+:root[data-theme="glass"] :is(.settings-panel, .filter-panel, .search-modal, .book-detail, .schedule-panel, .discussion, .server-panel, .chapter-narration, .listen-features article, .glass-widget) {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+:root[data-theme="glass"] :is(.icon-button, .save-card, .continue-play, .subtitle-toggle, .player-episode-controls button, .video-expand-button) {
+  color: #dfedff;
+  background: linear-gradient(145deg, #e6f1ff22, #97b9ec08 52%, #0002), #142030e8;
+  box-shadow: inset 0 1px #ffffff38, inset 0 -1px #0007, 0 4px 12px #0003;
+  border-color: #d9eaff30;
+}
+:root[data-theme="glass"] :is(.icon-button, .button, .player-episode-controls button, .subtitle-toggle, .watchlist-button, .chapter-list a, .filter-genres button, .audio-options button, .episode-buttons button) {
+  transition: transform .22s var(--fluid-ease), background-color .2s ease, border-color .2s ease, box-shadow .22s ease, color .2s ease;
+}
+:root[data-theme="glass"] :is(.icon-button, .button, .player-episode-controls, .subtitle-toggle, .glass-app-icon, .watchlist-button) svg {
+  stroke-width: 1.8;
+  filter: drop-shadow(0 1px 1px #0005);
+  flex-shrink: 0;
+}
+:root[data-theme="glass"] .button.primary {
+  background: linear-gradient(150deg, var(--brand-light), var(--brand-color));
+  color: #08131f;
+  border-color: #f0f8ff70;
+  box-shadow: inset 0 1px #ffffffa6, inset 0 -2px #17315730, 0 6px 22px color-mix(in srgb, var(--brand-color) 15%, transparent);
+}
+:root[data-theme="glass"] :is(.button.secondary, .watchlist-button, .audio-options button, .chapter-list a, .filter-genres button, .episode-buttons button) {
+  background: linear-gradient(145deg, #e0efff12, #97bce704), #111b28;
+  border: 1px solid #d6e7ff22;
+  box-shadow: inset 0 1px #ffffff12, 0 3px 8px #0002;
+}
+:root[data-theme="glass"] :is(.desktop-nav a.active, .universe-header nav a.active, .subnav nav a.active, .audio-options button.active, .filter-genres button.selected, .episode-buttons button.active, button[aria-pressed="true"]) {
+  color: var(--brand-light);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--brand-color) 23%, #121c2b), #172434);
+  border-color: color-mix(in srgb, var(--brand-color) 55%, transparent);
+  box-shadow: inset 0 1px #ffffff38, inset 0 -2px color-mix(in srgb, var(--brand-color) 35%, transparent), 0 4px 16px #0003;
+}
+:root[data-theme="glass"] :is(.desktop-nav, .universe-header nav, .subnav nav) a {
+  transition: color .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+:root[data-theme="glass"] :is(.header-search, .catalog-search, .universe-filters input, .reader-toolbar select, .hosted-controls select) {
+  border-color: #c8def52b;
+  background-color: #0c1421;
+  box-shadow: inset 0 1px 5px #0004, 0 1px #ffffff0a;
+}
+:root[data-theme="glass"] :is(input, select, textarea, button, a):focus-visible {
+  outline: 2px solid var(--brand-color);
+  outline-offset: 3px;
+}
+:root[data-theme="glass"] :is(.poster-wrap, .universe-card > div) {
+  border: 1px solid #d9eaff22;
+  box-shadow: 0 10px 24px #0005, inset 0 1px #ffffff24;
+}
+:root[data-theme="glass"] :is(.chapter-list a, .reading-history > a) { border-radius: 14px; }
+:root[data-theme="glass"] :is(.hosted-controls, .reader-toolbar) {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+/* Tilt only small interactive surfaces; never transform fullscreen ancestors. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme="glass"] :is(.button, .icon-button, .watchlist-button, .subtitle-toggle, .player-episode-controls button):not(:disabled):hover {
+    transform: perspective(600px) translateY(-2px) rotateX(5deg);
+    border-color: #dcefff65;
+    box-shadow: inset 0 1px #ffffff50, 0 8px 20px #0005;
+  }
+  :root[data-theme="glass"] :is(.anime-card, .universe-card):hover {
+    transform: perspective(1200px) translateY(-4px) rotateX(1deg);
+  }
+  :root[data-theme="glass"] :is(.chapter-list a, .filter-genres button, .audio-options button, .episode-buttons button):not(:disabled):hover {
+    transform: translateY(-2px); border-color: #c9e5ff65;
+  }
+}
+:root[data-theme="glass"] :is(.button, .icon-button, .watchlist-button, .player-episode-controls button):not(:disabled):active {
+  transform: scale(.96);
+  box-shadow: inset 0 2px 6px #0004;
+}
+/* Avoid stacking expensive blur layers across large mobile lists. */
+@media (max-width: 700px), (pointer: coarse) {
+  :root[data-theme="glass"] :is(.glass-widget, .book-detail, .discussion, .filter-panel, .chapter-narration, .listen-features article, .button, .icon-button, .reader-toolbar, .hosted-controls) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-theme="glass"] :is(.header, .universe-header, .subnav) {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="glass"] :is(.button, .icon-button, .watchlist-button, .subtitle-toggle, .player-episode-controls button, .anime-card, .universe-card, .chapter-list a, .filter-genres button, .audio-options button, .episode-buttons button) {
+    transition: none; transform: none !important; animation: none;
+  }
+}
+
+/* Specular highlights: a curved reflection at rest, a single sweep on interaction. */
+:root[data-theme="glass"] :is(.icon-button, .glass-app-icon, .player-episode-controls button) { position: relative; }
+:root[data-theme="glass"] :is(.icon-button, .glass-app-icon, .subtitle-toggle, .player-episode-controls button, .save-card, .continue-play, .video-expand-button) {
+  isolation: isolate;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 24% 0%, #e9f8ff35, transparent 58%), linear-gradient(155deg, #a8c8ef22 0%, #d2e6ff08 42%, #030a184d 64%, #9bbce818 100%), #142131f2;
+  border-color: #cfeaff59;
+  box-shadow: inset 0 1px 0 #f0fbff80, inset 1px 0 0 #daeeff22, inset -1px -1px 0 #ffffff16, inset 0 -3px 6px #0004, 0 4px 12px #0005;
+}
+:root[data-theme="glass"] :is(.icon-button, .glass-app-icon, .subtitle-toggle, .player-episode-controls button, .save-card, .continue-play, .video-expand-button)::before {
+  content: ""; position: absolute; pointer-events: none; z-index: -1;
+  left: 8%; right: 8%; top: 2px; height: 43%; border-radius: 50% 50% 44% 44%;
+  background: linear-gradient(175deg, #ffffff4d, #e6f5ff0c 75%, transparent);
+  border-top: 1px solid #ffffff65;
+}
+:root[data-theme="glass"] :is(.icon-button, .glass-app-icon, .subtitle-toggle, .player-episode-controls button, .save-card, .continue-play, .video-expand-button)::after {
+  content: ""; position: absolute; pointer-events: none; z-index: 1;
+  inset: -45% -80%; opacity: 0;
+  background: linear-gradient(110deg, transparent 40%, #e3faff20 46%, #ffffff85 50%, #e3faff20 54%, transparent 60%);
+  transform: translateX(-65%);
+}
+:root[data-theme="glass"] :is(.icon-button, .glass-app-icon, .subtitle-toggle, .player-episode-controls button, .save-card, .continue-play, .video-expand-button) svg {
+  color: #ecf7ff; filter: drop-shadow(0 1px 1px #0009) drop-shadow(0 -1px 1px #d9f4ff30);
+}
+:root[data-theme="glass"] :is(.icon-button, .subtitle-toggle, .player-episode-controls button):disabled { box-shadow: inset 0 1px #ffffff15; }
+@keyframes glass-specular-sweep {
+  0% { opacity: 0; transform: translateX(-65%); }
+  25% { opacity: .7; }
+  75% { opacity: .5; }
+  100% { opacity: 0; transform: translateX(65%); }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme="glass"] :is(.icon-button, .subtitle-toggle, .player-episode-controls button, .save-card, .continue-play, .video-expand-button):not(:disabled):hover::after,
+  :root[data-theme="glass"] .glass-widget:hover .glass-app-icon::after { animation: glass-specular-sweep .8s cubic-bezier(.2,.65,.35,1) both; }
+  :root[data-theme="glass"] :is(.icon-button, .subtitle-toggle, .player-episode-controls button):not(:disabled):hover {
+    box-shadow: inset 0 1px #ffffffb3, inset 1px 0 #c9eaff40, inset 0 -2px #ffffff20, 0 6px 20px #0006, 0 0 12px color-mix(in srgb, var(--brand-color) 16%, transparent);
+  }
+}
+@media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme="glass"] :is(.icon-button, .subtitle-toggle, .player-episode-controls button):not(:disabled):active::after { animation: glass-specular-sweep .45s ease-out both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="glass"] :is(.icon-button, .glass-app-icon, .subtitle-toggle, .player-episode-controls button, .save-card, .continue-play, .video-expand-button)::after { animation: none; }
+}
+
+/* Shared specular surface for buttons, native selects and selected navigation. */
+:root[data-theme="glass"] :is(.button, .watchlist-button, .audio-options button, .filter-genres button, .episode-buttons button, .reader-toolbar button, .reader-bottom button, .chapter-narration button, .external-fullscreen-button, .fullscreen-fit-button, .exit-player-fullscreen, .chapter-list a, .desktop-nav a, .universe-header nav a, .subnav nav a, select) {
+  background-image: linear-gradient(112deg, transparent 35%, #ffffff00 42%, #eaf8ff45 49%, #ffffff08 56%, transparent 63%), radial-gradient(ellipse at 22% 0%, #effaff26, transparent 65%), linear-gradient(175deg, #d9eeff18, #d9eeff03 45%, #02081426 65%, #aacfff12);
+  background-size: 250% 100%, 100% 100%, 100% 100%;
+  background-position: 100% 0, 0 0, 0 0;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 1px #f1faff50, inset 0 -1px #ffffff14, 0 3px 10px #0003;
+  border-color: #cce4ff3d;
+}
+:root[data-theme="glass"] .button.primary {
+  background-color: var(--brand-color);
+  color: #071420;
+  box-shadow: inset 0 1px #ffffffb3, inset 0 -2px #19385430, 0 5px 18px color-mix(in srgb, var(--brand-color) 20%, transparent);
+}
+:root[data-theme="glass"] :is(.desktop-nav a.active, .universe-header nav a.active, .subnav nav a.active, .audio-options button.active, .filter-genres button.selected, .episode-buttons button.active, button[aria-pressed="true"]) {
+  background-color: color-mix(in srgb, var(--brand-color) 23%, #101c2d);
+  border-color: color-mix(in srgb, var(--brand-color) 65%, transparent);
+  box-shadow: inset 0 1px #ffffff80, inset 0 -2px color-mix(in srgb, var(--brand-color) 60%, transparent), 0 4px 14px #0004;
+  color: var(--brand-light);
+}
+:root[data-theme="glass"] select { background-color: #111d2c; color: #edf6ff; }
+@keyframes glass-surface-sweep {
+  from { background-position: 100% 0, 0 0, 0 0; }
+  to { background-position: -100% 0, 0 0, 0 0; }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme="glass"] :is(.button, .watchlist-button, .audio-options button, .filter-genres button, .episode-buttons button, .reader-toolbar button, .reader-bottom button, .chapter-narration button, .external-fullscreen-button, .fullscreen-fit-button, .exit-player-fullscreen, .chapter-list a, .desktop-nav a, .universe-header nav a, .subnav nav a, select):not(:disabled):hover {
+    animation: glass-surface-sweep .85s ease-out;
+  }
+}
+@media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme="glass"] :is(.button, .watchlist-button, .audio-options button, .filter-genres button, .episode-buttons button, .reader-toolbar button, .reader-bottom button, .chapter-narration button, .chapter-list a, .subnav nav a, select):not(:disabled):active {
+    animation: glass-surface-sweep .5s ease-out;
+  }
+}
+@supports (appearance: base-select) {
+  :root[data-theme="glass"] select::picker(select) {
+    background: radial-gradient(ellipse at 15% 0%, #d9efff20, transparent 65%), linear-gradient(150deg, #1c2b3cf5, #0b1422fa);
+    border-color: #d5eeff59;
+    box-shadow: inset 0 1px #ffffff50, inset 0 -1px #ffffff15, 0 18px 55px #0009;
+  }
+  :root[data-theme="glass"] select option:checked {
+    background: linear-gradient(175deg, #e8f6ff24, #cce6ff05 55%), color-mix(in srgb, var(--brand-color) 20%, #182535);
+    box-shadow: inset 0 1px #ffffff50, inset 0 -1px #c9eaff24;
+    color: var(--brand-light);
+  }
+  :root[data-theme="glass"] select option:hover { background-color: #d7eeff1c; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="glass"] :is(button, select, .button, .watchlist-button, .chapter-list a, .desktop-nav a, .universe-header nav a, .subnav nav a) { animation: none !important; }
+}
+
+:root .soraix-brand .brand-light-sweep { opacity: 0; }
+:root[data-theme="glass"] .soraix-brand .soraix-wordmark {
+  background-image: linear-gradient(175deg, #ffffff 0%, var(--brand-light) 26%, var(--brand-color) 48%, var(--brand-deep) 53%, var(--brand-light) 78%, #ffffff 100%);
+  filter: drop-shadow(0 1px 1px #0009);
+}
+:root[data-theme="glass"] .soraix-brand .soraix-letter-x { color: var(--brand-light); text-shadow: 0 1px 0 var(--brand-deep); }
+@keyframes brand-reflection { 0% { opacity: 0; transform: translateX(0); } 20% { opacity: .85; } 80% { opacity: .6; } 100% { opacity: 0; transform: translateX(105px); } }
+@media (hover:hover) and (prefers-reduced-motion:no-preference) {
+  :root .soraix-brand:hover .brand-light-sweep { animation: brand-reflection 1s ease-out; }
+}
+@media (prefers-reduced-motion:no-preference) {
+  :root .splash-identity .brand-light-sweep { animation: brand-reflection 1.3s ease-out .4s both; }
+}
+
+/* Legible reflected lettering in closed selects and supported glass menus. */
+:root[data-theme="glass"] select {
+  color: #ecf7ff;
+  font-weight: 600;
+  text-shadow: 0 1px 1px #020814b3, 0 -1px 0 #ffffff38, 0 0 8px #b9e4ff18;
+}
+:root[data-theme="glass"] select option {
+  color: #e7f2ff;
+  font-weight: 500;
+  text-shadow: 0 1px 1px #02081499, 0 -1px 0 #ffffff26;
+}
+@supports (appearance: base-select) {
+  :root[data-theme="glass"] select option:checked {
+    color: #f5fbff;
+    font-weight: 650;
+    text-shadow: 0 1px 1px #020814cc, 0 -1px 0 #ffffff66, 0 0 9px color-mix(in srgb, var(--brand-color) 35%, transparent);
+  }
+  :root[data-theme="glass"] select option:hover {
+    color: #ffffff;
+    text-shadow: 0 1px 1px #020814cc, 0 -1px 0 #ffffff59, 0 0 7px #d1edff30;
+  }
+}
+@media (forced-colors: active) {
+  :root[data-theme="glass"] select, :root[data-theme="glass"] select option { text-shadow: none; }
+}
+
+/* Finishing pass: readable copy, stable images and accessible interaction. */
+:root[data-theme="glass"] :is(.page-intro p, .book-detail p, .empty p, .network-state p) { color: #b6c4d8; line-height: 1.75; }
+:root[data-theme="glass"] :is(.page-intro h1, .watch-title h1, .book-detail h1, .listen-hub h1) { text-wrap: balance; overflow-wrap: anywhere; }
+:root[data-theme="glass"] :is(.network-state, .empty) { border-radius: 22px; }
+:root[data-theme="glass"] .network-state[role="alert"] { border: 1px solid #eccba633; background: linear-gradient(135deg,#deae6a0a,#101824); padding: 24px; }
+:root[data-theme="glass"] .network-state .button { margin-top: 16px; }
+:root[data-theme="glass"] :is(.anime-card h3, .universe-card h3) { line-height: 1.5; }
+:root[data-theme="glass"] :is(.poster-wrap, .universe-card > div) { background-color: #152031; }
+:root[data-theme="glass"] :is(.chapter-list, .episode-list, .reader-toolbar, .subtitle-panel, .search-modal) { scrollbar-width: thin; scrollbar-color: #526984 #101824; }
+:root[data-theme="glass"] ::selection { color: #fff; background: #547399; }
+:root :is(.library-pagination, .episode-navigation, .narration-actions) { flex-wrap: wrap; }
+:root :is(.library-pagination, .episode-navigation) button { min-height: 44px; }
+@media (max-width: 600px) {
+  :root :is(.catalog-search input, .universe-filters input, .search-modal input, .chapter-narration textarea, .narration-key input) { font-size: 16px; }
+  :root :is(.universe-filters, .catalog-search) { min-width: 0; }
+  :root .universe-filters > * { max-width: 100%; min-width: 0; }
+  :root .universe-header > .theme-picker select { max-width: 112px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton, .skeleton::after, .network-skeletons > *, .universe, .universe-hero { animation: none !important; }
+  html { scroll-behavior: auto !important; }
+}

@@ -966,3 +966,25 @@ test('SUB failures advance through backups once and ignore spoofed messages', as
  await expect(player).toHaveAttribute('src',second);
  await expect(page.getByRole('button',{name:'Try next SUB server'})).toBeDisabled();
 });
+
+test('player episode buttons preserve fullscreen and respect episode boundaries', async ({page}) => {
+ await page.route('**/api/media/**',r=>r.fulfill({json:{episodes:[1,2].map(number=>({number,title:`Episode ${number}`,sources:[{url:'/episode-controls.mp4',type:'file'}]}))}}));
+ await page.route('**/episode-controls.mp4',r=>r.fulfill({contentType:'video/mp4',body:fs.readFileSync(new URL('../fixtures/playback.mp4',import.meta.url))}));
+ await page.goto('/watch/frieren-beyond-journey-s-end-52991?ep=1');
+ await expect(page.getByRole('button',{name:'Previous episode in player',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Expand video',exact:true}).click();
+ await page.waitForFunction(()=>!!document.fullscreenElement);
+ await page.mouse.move(1, 1);
+ await expect(page.locator('.watch-player-session')).toHaveClass(/player-controls-hidden/, {timeout:7000});
+ await expect(page.locator('video')).not.toHaveAttribute('controls');
+ await page.getByRole('button',{name:'Show player controls',exact:true}).click({position:{x:150,y:150}});
+ await expect(page.locator('.watch-player-session')).not.toHaveClass(/player-controls-hidden/);
+ await expect(page.locator('video')).toHaveAttribute('controls','');
+ await page.getByRole('button',{name:'Next episode in player',exact:true}).click();
+ await expect(page).toHaveURL(/ep=2/);
+ await expect(page.getByRole('button',{name:'Next episode in player',exact:true})).toBeDisabled();
+ expect(await page.evaluate(()=>document.fullscreenElement?.classList.contains('watch-player-session'))).toBe(true);
+ await page.getByRole('button',{name:'Previous episode in player',exact:true}).click();
+ await expect(page).toHaveURL(/ep=1/);
+ expect(await page.evaluate(()=>document.fullscreenElement?.classList.contains('watch-player-session'))).toBe(true);
+});

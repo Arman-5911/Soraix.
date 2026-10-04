@@ -45,11 +45,12 @@ export function Poster({ a, ...props }) {
       src={a.poster}
       alt={a.title.english}
       loading="lazy"
+      decoding="async"
       className={loaded ? "loaded" : ""}
       onLoad={() => setLoaded(true)}
       onError={(e) => {
-        e.currentTarget.onerror = null;
-        e.currentTarget.src = "/fallback.svg";
+        if (!e.currentTarget.src.endsWith("/fallback.svg"))
+          e.currentTarget.src = "/fallback.svg";
         setLoaded(true);
       }}
       {...props}

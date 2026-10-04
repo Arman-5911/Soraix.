@@ -21,6 +21,11 @@ const types = {
   ".woff2": "font/woff2",
 };
 const server = http.createServer(async (req, res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Content-Security-Policy", "frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   if (await apiHandler(req, res)) return;
   if (!["GET", "HEAD"].includes(req.method)) {
     res.writeHead(405);

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useLocal, useApp } from "./store";
 import { useResource, NetworkState } from "./services/live";
 import HostedPlayer from "./HostedPlayer";
+import EpisodeControls from "./EpisodeControls";
 import { togglePlayerFullscreen } from "./playerFullscreen";
 
 const audioLabel = (value) =>
@@ -16,6 +17,7 @@ export default function DirectEpisode({
   anime,
   episode,
   onNext,
+  onPrevious,
   fullscreenRef,
   initialPlayback,
 }) {
@@ -243,6 +245,7 @@ export default function DirectEpisode({
       {embedded &&
       live.data?.media?.servers?.some((s) => s.url === embedded) ? (
         <div className="external-player-shell">
+          <EpisodeControls onPrevious={onPrevious} onNext={onNext} />
           <button
             className="external-fullscreen-button"
             onClick={() => togglePlayerFullscreen(fullscreenRef?.current)}
@@ -369,6 +372,7 @@ export default function DirectEpisode({
             media: { ...live.data.media, audio: language },
           }}
           onNext={onNext}
+          onPrevious={onPrevious}
           onPlaybackFailure={fallback}
           onRetry={() => {
             switching.current = controller.current?.snapshot() || null;

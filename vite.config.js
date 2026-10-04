@@ -13,4 +13,4 @@ const liveApi = {
     server.middlewares.use(apiHandler);
   },
 };
-export default defineConfig({ plugins: [react(), liveApi] });
+export default defineConfig({ plugins: [react(), liveApi], build: { sourcemap: false } });

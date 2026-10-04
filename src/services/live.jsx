@@ -129,15 +129,16 @@ export function useSavedTitles(ids) {
     }
     setState({ loading: true, error: null });
     (async () => {
-      for (const id of list) {
-        try {
-          await request("/anime/" + encodeURIComponent(id));
-        } catch (error) {
-          if (active) setState({ loading: false, error });
-          return;
-        }
+      let firstError = null;
+      for (let offset = 0; offset < list.length && active; offset += 4) {
+        const results = await Promise.allSettled(
+          list.slice(offset, offset + 4).map(id =>
+            request("/anime/" + encodeURIComponent(id), { force: revision > 0 }),
+          ),
+        );
+        firstError ||= results.find(result => result.status === "rejected")?.reason;
       }
-      if (active) setState({ loading: false, error: null });
+      if (active) setState({ loading: false, error: firstError });
     })();
     return () => {
       active = false;
@@ -175,7 +176,7 @@ export function NetworkState({ resource, compact = false }) {
       >
         <span className="eyebrow">CONNECTING YOU TO NEW WORLDS</span>
         <p>Loading the live catalogue…</p>
-        <div className="network-skeletons">
+        <div className="network-skeletons" aria-hidden="true">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="skeleton" />
           ))}

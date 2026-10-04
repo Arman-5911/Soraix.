@@ -23,6 +23,7 @@ import Discussion from "../Discussion";
 import DirectEpisode from "../DirectEpisode";
 import HostedPlayer from "../HostedPlayer";
 import { exitPlayerFullscreen } from "../playerFullscreen";
+import usePlayerControls from "../usePlayerControls";
 
 export default function Watch() {
   const { slug } = useParams();
@@ -68,6 +69,7 @@ function WatchSession({ a, live, media }) {
     ? episodes.find((e) => e.key === requested)
     : episodes[0];
   const selectedIndex = episodes.findIndex((e) => e.key === selected?.key);
+  const controlsHidden = usePlayerControls(fullscreenRef, selected?.key);
   useEffect(() => {
     if (!query && selectedIndex >= 0) setPage(Math.floor(selectedIndex / 60));
   }, [requested, selectedIndex]);
@@ -127,6 +129,7 @@ function WatchSession({ a, live, media }) {
       <div className="watch-layout">
         <div className="player-column">
           <div className="watch-player-session" ref={fullscreenRef}>
+            {controlsHidden && <button type="button" className="player-controls-wake" aria-label="Show player controls" />}
             <button
               className="exit-player-fullscreen"
               onClick={() => exitPlayerFullscreen(fullscreenRef.current)}
@@ -144,6 +147,11 @@ function WatchSession({ a, live, media }) {
                 }
                 anime={a}
                 episode={selected}
+                onPrevious={
+                  episodes[selectedIndex - 1]?.media
+                    ? () => choose(episodes[selectedIndex - 1], true)
+                    : null
+                }
                 onNext={
                   episodes[selectedIndex + 1]?.media
                     ? () => choose(episodes[selectedIndex + 1], true)

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { READ_LISTEN_ENABLED } from "../../src/features.js";
 const item = {
   id: 1,
   anilistId: 30104,
@@ -253,6 +254,7 @@ test('branding follows every content mode with distinct colors', async ({page}) 
 });
 
 test('Read and Listen discovery, AI transcript, audio sync and key isolation', async ({page}) => {
+ test.skip(!READ_LISTEN_ENABLED, 'Read & Listen is temporarily closed.');
  await page.addInitScript(()=>{
    const voice={name:'English test voice',lang:'en-US',voiceURI:'test-en'};
    window.__spoken=[];
@@ -306,4 +308,23 @@ test('Read and Listen discovery, AI transcript, audio sync and key isolation', a
  await expect(page.getByLabel('Select chapter')).toBeVisible();
  await expect(page.getByRole('button',{name:'Read & Listen',exact:true})).toHaveCount(0);
  await expect(page.getByRole('region',{name:'Read and listen controls'})).toHaveCount(0);
+});
+
+test('Read and Listen coming soon gates dropdown and old links', async ({page}) => {
+ test.skip(READ_LISTEN_ENABLED, 'Feature is open.');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/');
+ await page.getByLabel('Content mode').selectOption('listen');
+ await expect(page.getByRole('dialog',{name:'Read & Listen is on its way'})).toBeVisible();
+ await page.getByRole('button',{name:'Got it'}).click();
+ await expect(page).toHaveURL(/\/$/);
+ await expect(page.getByLabel('Content mode')).toHaveValue('manga');
+ await page.goto('/read-listen');
+ await expect(page.getByRole('dialog')).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(page).toHaveURL(/\/$/);
+ await page.goto('/read/30104/chapter-a?listen=1');
+ await expect(page.getByLabel('Select chapter')).toBeVisible();
+ await expect(page.getByRole('region',{name:'Read and listen controls'})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Read & Listen',exact:true})).toHaveCount(0);
 });

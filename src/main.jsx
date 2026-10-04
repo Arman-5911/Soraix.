@@ -3,9 +3,11 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AppProvider } from "./store";
 import App from "./App";
+import StartupSplash from "./StartupSplash";
 import { UniverseProvider } from "./universe";
 import "./styles.css";
 import './themes.css';
+import './glass-refinements.css';
 class ErrorBoundary extends React.Component {
   state = { error: false };
   static getDerivedStateFromError() {
@@ -31,7 +33,7 @@ createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <AppProvider>
           <UniverseProvider>
-            <App />
+            <StartupSplash><App /></StartupSplash>
           </UniverseProvider>
         </AppProvider>
       </BrowserRouter>

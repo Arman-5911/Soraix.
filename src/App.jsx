@@ -3,6 +3,8 @@ import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { Header, Footer, Skeleton } from "./components";
 import { getAnimeDetails } from "./services/catalog";
 import { useAnime } from "./services/live";
+import { READ_LISTEN_ENABLED } from "./features";
+import ComingSoon from "./ComingSoon";
 import {
   useUniverse,
   modeBrand,
@@ -43,7 +45,10 @@ export default function App() {
     };
   }, []);
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Metadata refreshes and episode changes must not jump the page to the top.
+    if (!location.pathname.startsWith("/read/")) window.scrollTo(0, 0);
+  }, [location.pathname]);
+  useEffect(() => {
     const slug = location.pathname.split("/")[2];
     const a = /^\/(anime|watch)\//.test(location.pathname)
       ? liveAnime.data?.anime || getAnimeDetails(slug)
@@ -118,7 +123,10 @@ export default function App() {
       <main id="main">
         <Suspense key={location.pathname} fallback={<Skeleton />}>
           <Routes>
-            <Route path="read-listen" element={<ReadListen />} />
+            <Route
+              path="read-listen"
+              element={READ_LISTEN_ENABLED ? <ReadListen /> : <ComingSoon />}
+            />
             <Route
               path="/"
               element={mode === "anime" ? <Home /> : <UniverseHome />}
