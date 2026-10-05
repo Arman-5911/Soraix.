@@ -888,3 +888,7 @@
 .coming-soon-dialog h2 { margin: 14px 0; font-size: 25px; line-height: 1.2; }
 .coming-soon-dialog p { color: #b7c6da; line-height: 1.7; margin-bottom: 24px; }
 .coming-soon-dialog .button { width: 100%; justify-content: center; }
+
+/* External-player navigation must not cover its compatibility settings. */
+:root .external-player-shell > .player-episode-controls { position: relative; top: auto; left: auto; margin: 8px 0; }
+:root .watch-player-session:is(:fullscreen, :-webkit-full-screen, .player-expanded) .external-player-shell > .player-episode-controls { position: absolute; top: 64px; left: max(12px, env(safe-area-inset-left)); margin: 0; }

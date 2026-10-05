@@ -46,8 +46,8 @@ export default function DirectEpisode({
     embedded &&
     (() => {
       try {
-        return ["filesforever.link", "desidubanime.p2pplay.pro"].includes(
-          new URL(embedded).hostname,
+        return ["https://filesforever.link", "https://desidubanime.p2pplay.pro", "https://ani.pm"].includes(
+          new URL(embedded).origin,
         );
       } catch {
         return false;

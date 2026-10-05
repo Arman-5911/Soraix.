@@ -940,6 +940,7 @@ test('SUB subtitles load from local SRT, sync, turn off and stay out of Hindi', 
 });
 
 test('SUB failures advance through backups once and ignore spoofed messages', async ({page}) => {
+ await page.setViewportSize({width:390,height:844});
  const first='https://ani.pm/embed/ani/154587/1/sub';
  const second=first+'?hardsub=1';
  await page.route('**/api/media/**',r=>r.fulfill({json:{episodes:[{number:1,title:'Episode',provider:'audio',availableLanguages:['sub']}]}}));
@@ -951,6 +952,11 @@ test('SUB failures advance through backups once and ignore spoofed messages', as
  await page.locator('video').evaluate(v=>v.dispatchEvent(new Event('error')));
  const player=page.getByTitle('SUB episode player');
  await expect(player).toHaveAttribute('src',first);
+ await expect(player).not.toHaveAttribute('sandbox');
+ await page.getByLabel('Allow external-player ads and pop-ups').uncheck();
+ await expect(player).toHaveAttribute('sandbox', /allow-scripts/);
+ await page.getByLabel('Allow external-player ads and pop-ups').check();
+ await expect(player).not.toHaveAttribute('sandbox');
  await page.evaluate(()=>window.postMessage({ns:'anipm.player',v:1,event:'error'},'*'));
  await expect(player).toHaveAttribute('src',first);
  const fail=async()=>{
