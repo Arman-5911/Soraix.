@@ -420,7 +420,7 @@ export function Header() {
               ["Watchlist", "/watchlist"],
               ["History", "/history"],
             ].map(([name, url]) => (
-              <Link to={url} key={url}>
+              <Link to={url} key={url} className={location.pathname === url ? "active" : ""} aria-current={location.pathname === url ? "page" : undefined}>
                 {name}
                 <ChevronRight size={16} />
               </Link>

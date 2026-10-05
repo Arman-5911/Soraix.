@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SoraiX Preview</string>
+    <string name="title_activity_main">SoraiX Preview</string>
+    <string name="package_name">app.soraix.preview</string>
+    <string name="custom_url_scheme">app.soraix.preview</string>
+</resources>

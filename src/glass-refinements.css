@@ -270,3 +270,75 @@
   .skeleton, .skeleton::after, .network-skeletons > *, .universe, .universe-hero { animation: none !important; }
   html { scroll-behavior: auto !important; }
 }
+
+/* Mobile drawer uses the same glass material without blurring the entire page. */
+:root[data-theme="glass"] .modal-backdrop:has(.drawer-modal) {
+  background: #02060cc9;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+:root[data-theme="glass"] .drawer-modal {
+  background: linear-gradient(145deg, #33465a, #121e2c 35%, #0b1320);
+  border: 1px solid #dcefff35;
+  border-left: 0;
+  border-radius: 0 26px 26px 0;
+  box-shadow: inset 0 1px #ffffff40, inset -1px 0 #ffffff16, 12px 0 40px #0006;
+  max-width: calc(100vw - 20px);
+  max-height: 100dvh;
+  overscroll-behavior: contain;
+}
+:root[data-theme="glass"] .drawer-modal .drawer { background: transparent; padding: 22px 16px; }
+:root[data-theme="glass"] .drawer > a,
+:root[data-theme="glass"] .drawer > button {
+  min-height: 46px; margin: 5px 0; padding: 12px 14px;
+  border: 1px solid #d8eaff1c; border-radius: 14px;
+  background: linear-gradient(175deg,#eef8ff12,#b5d2ef03 55%);
+  color: #d6e4f6; box-shadow: inset 0 1px #ffffff12;
+}
+:root[data-theme="glass"] .drawer > a.active {
+  color: var(--brand-light); border-color: color-mix(in srgb,var(--brand-color) 45%,transparent);
+  background: linear-gradient(165deg,#eaf8ff20,transparent), color-mix(in srgb,var(--brand-color) 15%,#172537);
+  box-shadow: inset 0 1px #ffffff50, inset 3px 0 var(--brand-color);
+}
+:root[data-theme="glass"] .drawer > a svg { color: var(--brand-color); opacity: .85; }
+:root[data-theme="glass"] .drawer > .theme-picker { margin-top: 18px; padding-top: 16px; border-top: 1px solid #dcefff20; }
+@media (max-width: 700px), (pointer: coarse) {
+  :root[data-theme="glass"] :is(select, .subtitle-toggle, .player-episode-controls button, .subtitle-panel, .search-modal, .settings-panel, .subnav) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  :root[data-theme="glass"] :is(.icon-button, .button, .glass-app-icon, .subtitle-toggle, .player-episode-controls, .soraix-brand) svg { filter: none; }
+  :root[data-theme="glass"] :is(.anime-card, .universe-card):hover { transform: none; }
+  :root[data-theme="glass"] .soraix-brand:hover .soraix-letter-x { animation: none; }
+  :root[data-theme="glass"] .soraix-brand:hover .soraix-mark { transform: none; }
+  :root[data-theme="glass"] select::picker(select) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  :root[data-theme="glass"] .drawer-modal { animation-duration: .18s; }
+}
+@media (prefers-reduced-motion: reduce) { .drawer-modal, .drawer { animation: none !important; } }
+:root[data-theme="glass"] .drawer-modal { min-height: 100dvh; height: 100dvh; overflow-y: auto; }
+:root[data-theme="glass"] .drawer-modal .drawer { min-height: 100%; }
+
+/* Theme-aware scrollbars: compact, rounded and readable on dark surfaces. */
+:root {
+  --scroll-track: #0b1019;
+  --scroll-thumb: #52647e;
+  --scroll-hover: #7895b9;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+:root[data-theme="glass"] {
+  --scroll-track: #0b121c;
+  --scroll-thumb: color-mix(in srgb, var(--brand-color) 38%, #29384c);
+  --scroll-hover: color-mix(in srgb, var(--brand-color) 65%, #51647d);
+}
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 12px; }
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--scroll-track);
+  border-radius: 12px;
+  background: var(--scroll-thumb);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+::-webkit-scrollbar-corner { background: var(--scroll-track); }
+:root[data-theme="glass"] :is(.chapter-list, .episode-list, .reader-toolbar, .subtitle-panel, .search-modal) {
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+@media (forced-colors: active) { :root, * { scrollbar-color: auto; scrollbar-width: auto; } }

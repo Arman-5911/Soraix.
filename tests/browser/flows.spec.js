@@ -196,18 +196,19 @@ test("watch page episode navigation and local discussion", async ({ page }) => {
 test("responsive home, navigation and no horizontal overflow", async ({
   page,
 }) => {
+  await page.addInitScript(() => localStorage.setItem('soraix-theme', '"glass"'));
   await page.goto("/", { waitUntil: "domcontentloaded" });
   for (const width of [1920, 1440, 1024, 768, 480, 375, 320]) {
     await page.setViewportSize({ width, height: 950 });
     await expect(page.locator(".hero")).toBeVisible();
-    expect(
-      await page.evaluate(
+    await expect.poll(() => page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
-      ),
-      `overflow at ${width}`,
-    ).toBeTruthy();
+      ), { message: `overflow at ${width}` }).toBeTruthy();
   }
   await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(page.locator('.drawer a[aria-current="page"]')).toHaveCount(1);
+  expect(await page.locator('.drawer-modal').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('gradient');
+  expect(await page.locator('.modal-backdrop').evaluate(el => getComputedStyle(el).backdropFilter)).toBe('none');
   await page
     .locator(".drawer")
     .getByRole("link", { name: "Movies", exact: true })
