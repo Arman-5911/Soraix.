@@ -1,5 +1,16 @@
 # SoraiX Android preview
 
+## Preview 1.1 fixes
+
+- Native WebView fullscreen view support, Android Back exits video fullscreen.
+- Immersive system bars with swipe-to-reveal, cutout support and no reserved top margin.
+- Keyboard insets retained for search and other text fields.
+- Explicit hardware acceleration and an app-only lighter rendering stylesheet on
+  the exact SoraiX origin. No changes to the website or third-party iframe styles.
+- Build/signature checks do not substitute for device tests. No connected phone or
+  configured emulator was available when these fixes were made; playback, cutouts,
+  rotation and frame rate must still be checked on a phone.
+
 This isolated Capacitor 8 project is a **test wrapper**, not a Play Store release.
 It opens https://soraix.vercel.app as the top-level WebView (not an iframe), so the
 website's API, cookies and localStorage retain their same-origin behavior.
