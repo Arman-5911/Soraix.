@@ -210,3 +210,12 @@ Live comparison on Naruto episode 1: Mirror without sandbox played more than eig
 ### Liquid Glass dark appearance
 
 The `glass` theme is now labeled Liquid Glass ? Dark. It adds floating translucent navigation, highlighted active links, rounded icon controls, reflective borders, and collection/history/discovery widgets backed by browser-local state. Native playback includes themed seek and volume sliders, source/quality controls and animated preference switches. Other themes retain their original layout. Motion uses short opacity/transform transitions and respects reduced-motion; mobile layouts avoid horizontal overflow. This is an independently designed iOS-inspired web theme, not an Apple asset or exact OS reproduction. Theme selection remains stored locally. Preview images are in `docs/screenshots/liquid-glass-desktop.png`, `liquid-glass-mobile.png` and `liquid-glass-player.png`.
+
+
+### October 10 audit improvements
+
+The build now generates 25 public landing overviews with route-specific metadata, canonical URLs and WebSite/Organization schema. Live catalogue results still load in the browser; this is minimal prerendering, not complete catalogue SSR. Dynamic routes use `spa.html` to avoid hydrating homepage markup on watch/reader URLs. Keep explicit Vercel rewrites in sync with the route inventory and rerun production deep-link/404 tests after changes.
+
+AniList artwork is transformed to responsive WebP through `/api/artwork`, restricted to a fixed CDN host and image paths. Inputs, output widths, processing concurrency and cache size are bounded, redirects are rejected, and original images remain the fallback. Serverless cache misses can add compute/bandwidth; monitor these after deployment.
+
+Audit validation: `npm test`, `npm run build`, `npm audit`, then `PLAYWRIGHT_BASE_URL` pointing at a standalone production server with `npx playwright test`. `node scripts/audit-performance.mjs` runs a synthetic throttled mobile comparison; it is not Lighthouse or CrUX. Splash timing is preserved and the sub-2.5-second LCP target is not claimed. See `AUDIT-FIX-PLAN.md` for release verification still pending.

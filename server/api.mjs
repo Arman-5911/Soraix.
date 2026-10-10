@@ -1,6 +1,7 @@
 import { directLibrary, resolveEpisode } from "./streaming.mjs";
 import { externalSubtitles } from "./subtitles.mjs";
 import { guardApi } from "./request-guard.mjs";
+import { optimizedArtwork } from "./artwork.mjs";
 import { subBackupLibrary, subBackupServers } from "./sub-backup.mjs";
 import { readerImage } from "./reading-sources.mjs";
 import { deliverDub } from "./dub-delivery.mjs";
@@ -240,6 +241,13 @@ export async function apiHandler(req, res, next) {
   if (!guardApi(req, res, url)) return true;
   try {
     let value;
+    if (url.pathname === "/api/artwork") {
+      const body = await optimizedArtwork(url.searchParams.get("url"), Number(url.searchParams.get("width")));
+      res.setHeader("Content-Type", "image/webp");
+      res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
+      res.end(body);
+      return true;
+    }
     if (/^\/api\/subtitles\/(?:\d+|al\d+)\/\d+(?:\.\d+)?$/.test(url.pathname)) {
       const parts = url.pathname.split("/");
       let captions = [];

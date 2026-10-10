@@ -6,3 +6,5 @@ android/**/build/
 *.keystore
 artifacts/
 .tools/
+
+.signing/

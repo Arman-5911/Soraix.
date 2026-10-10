@@ -5,18 +5,16 @@ import { getAnimeDetails } from "./services/catalog";
 import { useAnime } from "./services/live";
 import { READ_LISTEN_ENABLED } from "./features";
 import ComingSoon from "./ComingSoon";
-import {
-  useUniverse,
-  modeBrand,
-  UniverseHeader,
-  DonghuaHistory,
-  UniverseHome,
-  UniverseBrowse,
-  UniverseDetail,
-  UniverseLibrary,
-  ReadingHistory,
-  Reader,
-} from "./universe";
+import { pageDescription } from "./pageMetadata";
+import { useUniverse, modeBrand } from "./contentMode";
+const UniverseHeader = lazy(() => import("./universe").then(m => ({ default: m.UniverseHeader })));
+const DonghuaHistory = lazy(() => import("./universe").then(m => ({ default: m.DonghuaHistory })));
+const UniverseHome = lazy(() => import("./universe").then(m => ({ default: m.UniverseHome })));
+const UniverseBrowse = lazy(() => import("./universe").then(m => ({ default: m.UniverseBrowse })));
+const UniverseDetail = lazy(() => import("./universe").then(m => ({ default: m.UniverseDetail })));
+const UniverseLibrary = lazy(() => import("./universe").then(m => ({ default: m.UniverseLibrary })));
+const ReadingHistory = lazy(() => import("./universe").then(m => ({ default: m.ReadingHistory })));
+const Reader = lazy(() => import("./universe").then(m => ({ default: m.Reader })));
 const Watchable = lazy(() => import("./pages/Watchable"));
 const Home = lazy(() => import("./pages/Home"));
 const Browse = lazy(() => import("./pages/Browse"));
@@ -49,6 +47,9 @@ export default function App() {
     if (!location.pathname.startsWith("/read/")) window.scrollTo(0, 0);
   }, [location.pathname]);
   useEffect(() => {
+    window.dispatchEvent(new Event("soraix:navigation"));
+  }, [location.pathname, mode]);
+  useEffect(() => {
     const slug = location.pathname.split("/")[2];
     const a = /^\/(anime|watch)\//.test(location.pathname)
       ? liveAnime.data?.anime || getAnimeDetails(slug)
@@ -63,11 +64,11 @@ export default function App() {
             .replace(/\b\w/g, (s) => s.toUpperCase());
     document.title =
       location.pathname === "/"
-        ? modeBrand(mode)
+        ? `${modeBrand(mode)} | Discover series and stories`
         : `${modeBrand(mode)} | ${label}`;
     const description = a
       ? a.description.slice(0, 155)
-      : "Discover extraordinary anime, save your watchlist, and find your next favorite story. All on SoraiX.";
+      : pageDescription(location.pathname, mode);
     const meta = (property, content) => {
       let el = document.head.querySelector(`meta[property="${property}"]`);
       if (!el) {
@@ -92,6 +93,19 @@ export default function App() {
     }
     canonical.href = window.location.origin + location.pathname;
     document.querySelector("#anime-schema")?.remove();
+    let websiteSchema = document.querySelector("#website-schema");
+    if (!websiteSchema) {
+      websiteSchema = document.createElement("script");
+      websiteSchema.id = "website-schema";
+      websiteSchema.type = "application/ld+json";
+      document.head.append(websiteSchema);
+    }
+    websiteSchema.textContent = JSON.stringify({
+      "@context": "https://schema.org", "@graph": [
+        { "@type": "WebSite", name: "SoraiX", url: window.location.origin + "/", description: pageDescription("/", "anime") },
+        { "@type": "Organization", name: "SoraiX", url: window.location.origin + "/" },
+      ],
+    });
     if (a) {
       const script = document.createElement("script");
       script.id = "anime-schema";
@@ -113,14 +127,14 @@ export default function App() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      {mode === "anime" ? <Header /> : <UniverseHeader />}
+      {mode === "anime" ? <Header /> : <Suspense fallback={<div className="header-loading" />}><UniverseHeader /></Suspense>}
       {!online && (
         <div className="offline-notice" role="status">
           You’re offline. Your local watchlist is still here; live data and
           streaming need a connection.
         </div>
       )}
-      <main id="main">
+      <main id="main" className={location.pathname === "/" ? "home-main-reserved" : undefined}>
         <Suspense key={location.pathname} fallback={<Skeleton />}>
           <Routes>
             <Route

@@ -46,7 +46,7 @@ export function guardApi(req, res, url) {
   // Same-origin browser clients need no CORS exceptions or credential sharing.
   if (req.headers?.["sec-fetch-site"] === "cross-site")
     return reject(403, "Cross-site API requests are not allowed.");
-  const media = /^\/api\/(dub-media|reader-image)(?:\/|$)/.test(url.pathname);
+  const media = /^\/api\/(dub-media|reader-image|artwork)(?:\/|$)/.test(url.pathname);
   const expensive =
     /^\/api\/(watchable|stream|subtitles|media|chapters|pages)(?:\/|$)/.test(
       url.pathname,

@@ -1,4 +1,5 @@
 import GlassWidgets from "../GlassWidgets";
+import { artworkUrl } from "../artwork";
 import { WatchableCollection } from "./Watchable";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -120,10 +121,20 @@ function Hero() {
       onFocus={() => setPaused(true)}
       aria-label="Featured anime"
     >
-      <div
+      <img
         key={a.id}
         className="hero-art"
-        style={{ backgroundImage: `url("${a.banner || a.poster}")` }}
+        src={artworkUrl(a.banner || a.poster, 960)}
+        alt=""
+        width="1280"
+        height="720"
+        fetchPriority="high"
+        onError={event => {
+          if (!event.currentTarget.dataset.fallback) {
+            event.currentTarget.dataset.fallback = "true";
+            event.currentTarget.src = a.banner || a.poster;
+          }
+        }}
       />
       <div className="hero-gradient" />
       <div className="hero-grain" />
@@ -313,7 +324,7 @@ function GenrePanel() {
 export default function Home() {
   const [tab, setTab] = useState("All");
   const live = useResource("/home", { interval: 120000 });
-  if (!live.data) return <NetworkState resource={live} />;
+  if (!live.data) return <div className="home-loading"><div className="hero" aria-hidden="true" /><NetworkState resource={live} /></div>;
   const updated = getRecentlyUpdated().filter(
     (a) =>
       tab === "All" ||

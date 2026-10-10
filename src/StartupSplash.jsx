@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Brand from "./Brand";
-import { useUniverse } from "./universe";
+import { useUniverse } from "./contentMode";
 import "./splash.css";
 
 function shouldShow() {

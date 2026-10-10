@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Bookmark, History, Compass, ArrowUpRight } from "lucide-react";
 import { useApp } from "./store";
-import { useUniverse } from "./universe";
+import { useUniverse } from "./contentMode";
 export default function GlassWidgets() {
   const { theme, watchlist, history } = useApp();
   const reading = useUniverse();

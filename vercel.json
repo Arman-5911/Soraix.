@@ -7,20 +7,158 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https:; worker-src 'self' blob:; frame-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https:; worker-src 'self' blob:; frame-src 'self' https:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
       ]
     }
   ],
-  "functions": { "api/index.js": { "maxDuration": 60 } },
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index?route=:path*" },
     {
-      "source": "/((?!api/|assets/|artwork/|favicon.svg|fallback.svg|robots.txt|sitemap.xml).*)",
-      "destination": "/index.html"
+      "source": "/api/:path*",
+      "destination": "/api/index?route=:path*"
+    },
+    {
+      "source": "/search",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/movies",
+      "destination": "/movies/index.html"
+    },
+    {
+      "source": "/tv",
+      "destination": "/tv/index.html"
+    },
+    {
+      "source": "/most-popular",
+      "destination": "/most-popular/index.html"
+    },
+    {
+      "source": "/top-airing",
+      "destination": "/top-airing/index.html"
+    },
+    {
+      "source": "/recently-updated",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/recently-added",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/completed",
+      "destination": "/completed/index.html"
+    },
+    {
+      "source": "/filter",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/genres",
+      "destination": "/genres/index.html"
+    },
+    {
+      "source": "/ova",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/ona",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/specials",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/most-favorite",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/new-releases",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/watchable",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/read-listen",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/watchlist",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/history",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/schedule",
+      "destination": "/schedule/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/copyright",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/genre/:genre",
+      "destination": "/genre/:genre/index.html"
+    },
+    {
+      "source": "/anime/:slug",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/watch/:slug",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/media/:id",
+      "destination": "/spa.html"
+    },
+    {
+      "source": "/read/:id/:chapterId",
+      "destination": "/spa.html"
     }
   ]
 }

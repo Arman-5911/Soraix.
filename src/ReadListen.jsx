@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useResource, NetworkState } from "./services/live";
-import { useUniverse } from "./universe";
+import { useUniverse } from "./contentMode";
 
 export default function ReadListen() {
   const [params, setParams] = useSearchParams();

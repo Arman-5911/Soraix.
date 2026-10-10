@@ -2,8 +2,8 @@ $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 try {
     if (-not $env:JAVA_HOME) {
-        $previewJdk = Get-ChildItem -LiteralPath '.tools/jdk' -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($previewJdk) { $env:JAVA_HOME = $previewJdk.FullName }
+        $mobileJdk = Get-ChildItem -LiteralPath '.tools/jdk' -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($mobileJdk) { $env:JAVA_HOME = $mobileJdk.FullName }
     }
     if (-not $env:JAVA_HOME) { throw 'Set JAVA_HOME to a JDK 21 installation first.' }
     if (-not $env:ANDROID_HOME) { $env:ANDROID_HOME = Join-Path $env:LOCALAPPDATA 'Android/Sdk' }
@@ -13,6 +13,6 @@ try {
     & ./android/gradlew.bat -p android assembleDebug --no-daemon
     if ($LASTEXITCODE -ne 0) { throw 'Android build failed.' }
     New-Item -ItemType Directory -Force artifacts | Out-Null
-    Copy-Item -LiteralPath 'android/app/build/outputs/apk/debug/app-debug.apk' -Destination 'artifacts/SoraiX-preview.apk'
-    Write-Output 'APK ready: mobile/artifacts/SoraiX-preview.apk'
+    Copy-Item -LiteralPath 'android/app/build/outputs/apk/debug/app-debug.apk' -Destination 'artifacts/SoraiX-debug.apk'
+    Write-Output 'APK ready: mobile/artifacts/SoraiX-debug.apk'
 } finally { Pop-Location }

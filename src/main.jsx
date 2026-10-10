@@ -1,10 +1,11 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
+import React, { useEffect, useState } from "react";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import { LandingContent } from "./landingContent";
 import { BrowserRouter } from "react-router-dom";
-import { AppProvider } from "./store";
+import { AppProvider, readStore } from "./store";
 import App from "./App";
 import StartupSplash from "./StartupSplash";
-import { UniverseProvider } from "./universe";
+import { UniverseProvider } from "./contentMode";
 import "./styles.css";
 import './themes.css';
 import './glass-refinements.css';
@@ -27,6 +28,24 @@ class ErrorBoundary extends React.Component {
     );
   }
 }
+function Overview() {
+  const [pathname, setPathname] = useState(location.pathname);
+  const [mode, setMode] = useState("anime");
+  useEffect(() => {
+    const update = () => {
+      setPathname(location.pathname);
+      const saved = readStore("content-mode", "anime");
+      setMode(["anime", "manga", "manhwa", "manhua", "donghua"].includes(saved) ? saved : "anime");
+    };
+    update();
+    window.addEventListener("soraix:navigation", update);
+    return () => window.removeEventListener("soraix:navigation", update);
+  }, []);
+  return <LandingContent pathname={pathname} mode={mode} />;
+}
+const overview = document.getElementById("site-overview");
+if (overview.hasChildNodes()) hydrateRoot(overview, <Overview />);
+else createRoot(overview).render(<Overview />);
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>

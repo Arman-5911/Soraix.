@@ -446,6 +446,7 @@ test("liquid glass widgets, player sliders and reduced motion work", async ({
   );
   const seek = page.getByRole("slider", { name: "Seek video" });
   await expect(seek).toBeEnabled();
+  await expect(page.locator(".startup-splash")).toHaveCount(0);
   await seek.focus();
   await seek.press("End");
   await expect

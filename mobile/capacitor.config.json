@@ -1,6 +1,6 @@
 {
   "appId": "app.soraix.preview",
-  "appName": "SoraiX Preview",
+  "appName": "SoraiX",
   "webDir": "www",
   "server": {
     "url": "https://soraix.vercel.app",
@@ -9,9 +9,14 @@
   },
   "android": {
     "allowMixedContent": false,
-    "backgroundColor": "#060910"
+    "backgroundColor": "#060910",
+    "webContentsDebuggingEnabled": false
   },
   "plugins": {
-    "SystemBars": { "hidden": true, "style": "DARK", "insetsHandling": "disable" }
+    "SystemBars": {
+      "hidden": true,
+      "style": "DARK",
+      "insetsHandling": "disable"
+    }
   }
 }

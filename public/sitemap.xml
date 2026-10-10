@@ -10,4 +10,22 @@
   <url><loc>https://soraix.vercel.app/completed</loc></url>
   <url><loc>https://soraix.vercel.app/genres</loc></url>
   <url><loc>https://soraix.vercel.app/schedule</loc></url>
+  <url><loc>https://soraix.vercel.app/about</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/action</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/adventure</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/comedy</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/drama</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/fantasy</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/horror</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/mahou%20shoujo</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/mecha</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/music</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/mystery</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/psychological</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/romance</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/sci-fi</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/slice%20of%20life</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/sports</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/supernatural</loc></url>
+  <url><loc>https://soraix.vercel.app/genre/thriller</loc></url>
 </urlset>

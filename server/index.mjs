@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { apiHandler } from "./api.mjs";
 import { applySecurityHeaders } from "./security-headers.mjs";
 import { restrictedPath } from "./request-guard.mjs";
+import { isSiteRoute } from "./site-routes.mjs";
 try {
   process.loadEnvFile();
 } catch {}
@@ -46,14 +47,18 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     try {
-      if (!(await fs.stat(file)).isFile()) file = path.join(root, "index.html");
+      if ((await fs.stat(file)).isDirectory()) file = path.join(file, "index.html");
+      if (!(await fs.stat(file)).isFile()) throw new Error("Not a file");
     } catch {
       if (path.extname(pathname)) {
         res.writeHead(404);
         res.end("Not found");
         return;
       }
-      file = path.join(root, "index.html");
+      if (!isSiteRoute(pathname)) {
+        res.statusCode = 404;
+        file = path.join(root, "404.html");
+      } else file = path.join(root, "spa.html");
     }
     const real = await fs.realpath(file);
     if (!real.startsWith(root + path.sep)) {

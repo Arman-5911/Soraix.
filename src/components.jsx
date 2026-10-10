@@ -1,3 +1,4 @@
+import { artworkUrl, artworkSrcSet } from "./artwork";
 import Brand from "./Brand";
 import ThemePicker, { THEMES } from "./ThemePicker";
 import React, { useEffect, useRef, useState } from "react";
@@ -25,7 +26,7 @@ import {
   Command,
 } from "lucide-react";
 import { useApp } from "./store";
-import { ModeSwitcher, useUniverse, modeBrand } from "./universe";
+import { ModeSwitcher, useUniverse, modeBrand } from "./contentMode";
 import { anime, getTrendingAnime, getPopularAnime } from "./services/catalog";
 import { request, useResource, NetworkState } from "./services/live";
 export const IconButton = ({ label, children, ...props }) => (
@@ -42,13 +43,22 @@ export function Poster({ a, ...props }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <img
-      src={a.poster}
+      src={artworkUrl(a.poster)}
+      srcSet={artworkSrcSet(a.poster)}
+      sizes="(max-width: 600px) 44vw, (max-width: 1000px) 25vw, 180px"
+      width="460"
+      height="650"
       alt={a.title.english}
       loading="lazy"
       decoding="async"
       className={loaded ? "loaded" : ""}
       onLoad={() => setLoaded(true)}
       onError={(e) => {
+        if (e.currentTarget.srcset) {
+          e.currentTarget.removeAttribute("srcset");
+          e.currentTarget.src = a.poster;
+          return;
+        }
         if (!e.currentTarget.src.endsWith("/fallback.svg"))
           e.currentTarget.src = "/fallback.svg";
         setLoaded(true);
@@ -322,7 +332,7 @@ export function Header() {
               Explore <span className="nav-dot" />
             </Link>
           </nav>
-          <button className="header-search" onClick={() => setSearch(true)}>
+          <button className="header-search" aria-label="Search your next adventure" onClick={() => setSearch(true)}>
             <Search size={17} />
             <span>Search your next adventure...</span>
             <kbd>⌘ K</kbd>
@@ -355,7 +365,7 @@ export function Header() {
             >
               <Settings size={18} />
             </IconButton>
-            <Link className="watchlist-button" to="/watchlist">
+            <Link className="watchlist-button" to="/watchlist" aria-label="Watchlist">
               <Bookmark size={17} />
               <span>Watchlist</span>
               {watchlist.length > 0 && <b>{watchlist.length}</b>}
@@ -651,21 +661,21 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <h4>DISCOVER</h4>
+          <h3>DISCOVER</h3>
           <Link to="/movies">Movies</Link>
           <Link to="/tv">TV Series</Link>
           <Link to="/top-airing">Top Airing</Link>
           <Link to="/genres">Genres</Link>
         </div>
         <div>
-          <h4>YOUR SPACE</h4>
+          <h3>YOUR SPACE</h3>
           <Link to="/watchlist">My Watchlist</Link>
           <Link to="/history">Watch History</Link>
           <Link to="/schedule">Release Schedule</Link>
           <Link to="/filter">Advanced Search</Link>
         </div>
         <div>
-          <h4>THE FINE PRINT</h4>
+          <h3>THE FINE PRINT</h3>
           <Link to="/about">About SoraiX</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/privacy">Privacy Policy</Link>
