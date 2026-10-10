@@ -4,7 +4,9 @@ import { ApiError } from "./anilist.mjs";
 const ORIGIN = "https://ani.pm";
 const cache = new Map(),
   pending = new Map();
-export function normalizeSubBackup(data, id) {
+export function normalizeSubBackup(data, id, language = "sub") {
+  if (!["sub", "dub"].includes(language))
+    throw new ApiError("Invalid backup audio.", 400);
   const value = String(id);
   const isAni = /^al\d+$/.test(value);
   if (
@@ -21,12 +23,12 @@ export function normalizeSubBackup(data, id) {
       !Number.isFinite(number) ||
       number <= 0 ||
       seen.has(number) ||
-      row.available?.sub !== true
+      row.available?.[language] !== true
     )
       continue;
     let url;
     try {
-      url = new URL(row.embed?.sub);
+      url = new URL(row.embed?.[language]);
     } catch {
       continue;
     }
@@ -34,7 +36,8 @@ export function normalizeSubBackup(data, id) {
       url.origin !== ORIGIN ||
       url.username ||
       url.password ||
-      url.pathname !== `/embed/ani/${Number(data.anilistId)}/${number}/sub`
+      url.pathname !==
+        `/embed/ani/${Number(data.anilistId)}/${number}/${language}`
     )
       continue;
     url.search = "";
@@ -43,12 +46,19 @@ export function normalizeSubBackup(data, id) {
     url.searchParams.set("episodes", "0");
     url.searchParams.set("subtitles", "en");
     const servers = [
-      { name: "Ani.pm · SUB", url: url.href, protocol: "anipm" },
+      {
+        name: language === "dub" ? "Ani.pm · English DUB" : "Ani.pm · SUB",
+        url: url.href,
+        protocol: "anipm",
+      },
     ];
-    if (row.available.subHard === true) {
+    if (row.available[language === "dub" ? "dubHard" : "subHard"] === true) {
       url.searchParams.set("hardsub", "1");
       servers.push({
-        name: "Ani.pm · Burned-in SUB",
+        name:
+          language === "dub"
+            ? "Ani.pm · English DUB (burned-in captions)"
+            : "Ani.pm · Burned-in SUB",
         url: url.href,
         protocol: "anipm",
       });
@@ -58,7 +68,7 @@ export function normalizeSubBackup(data, id) {
       number,
       title: row.title || `Episode ${number}`,
       provider: "audio",
-      availableLanguages: ["sub"],
+      availableLanguages: [language],
       backupServers: servers,
     });
   }
@@ -89,7 +99,22 @@ export async function subBackupLibrary(id) {
     if (!response.ok)
       throw new ApiError("SUB backup is temporarily unavailable.", 502);
     const data = await response.json();
-    const value = normalizeSubBackup(data.data, key);
+    const sub = normalizeSubBackup(data.data, key);
+    const dub = normalizeSubBackup(data.data, key, "dub");
+    const episodes = new Map(sub.episodes.map((e) => [e.number, e]));
+    for (const e of dub.episodes) {
+      const existing = episodes.get(e.number);
+      episodes.set(e.number, {
+        ...(existing || e),
+        availableLanguages: existing ? ["sub", "dub"] : ["dub"],
+        backupServers: existing?.backupServers || [],
+        dubBackupServers: e.backupServers,
+      });
+    }
+    const value = {
+      ...sub,
+      episodes: [...episodes.values()].sort((a, b) => a.number - b.number),
+    };
     if (cache.size >= 200) cache.delete(cache.keys().next().value);
     cache.set(key, { value, until: Date.now() + 300000 });
     return value;
@@ -97,7 +122,11 @@ export async function subBackupLibrary(id) {
   pending.set(key, task);
   return task;
 }
-export async function subBackupServers(id, number) {
+export async function subBackupServers(id, number, language = "sub") {
   const library = await subBackupLibrary(id);
-  return library.episodes.find((e) => e.number === number)?.backupServers || [];
+  return (
+    library.episodes.find((e) => e.number === number)?.[
+      language === "dub" ? "dubBackupServers" : "backupServers"
+    ] || []
+  );
 }

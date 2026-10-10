@@ -14,11 +14,17 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
     originals = useRef(new WeakMap());
   const request = useRef(null);
   useEffect(() => {
-    if (audio !== "dub") return;
+    if (!["sub", "dub"].includes(audio)) return;
     const timer = setTimeout(() => {
-      if (video.current && !Array.from(video.current.textTracks).some(t => ["subtitles", "captions"].includes(t.kind)))
+      if (
+        video.current &&
+        preference.current === null &&
+        !Array.from(video.current.textTracks).some(
+          (t) => ["subtitles", "captions"].includes(t.kind) && t.cues?.length,
+        )
+      )
         findSubtitles();
-    }, 1800);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [animeId, episode, audio]);
   useEffect(() => {
@@ -28,7 +34,8 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
         ["subtitles", "captions"].includes(t.kind),
       );
       if (
-        auto && preference.current === null &&
+        auto &&
+        preference.current === null &&
         !list.some((t) => t.mode === "showing")
       ) {
         const english = list.find(
@@ -72,15 +79,16 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
     setSelected(index);
     setOffset(0);
   };
-  const addTrack = (url, label, language = "en") => {
+  const addTrack = (url, label, language = "en", retryExternal = false) => {
     const element = document.createElement("track");
     element.kind = "subtitles";
     element.label = label;
     element.srclang = language;
     element.src = url;
-    element.addEventListener("error", () =>
-      setMessage("Subtitles could not load. Try a local SRT/VTT file."),
-    );
+    element.addEventListener("error", () => {
+      if (retryExternal) findSubtitles(true);
+      else setMessage("Subtitles could not load. Try a local SRT/VTT file.");
+    });
     element.addEventListener("load", () => {
       for (const t of video.current?.textTracks || [])
         t.mode = t === element.track ? "showing" : "disabled";
@@ -110,7 +118,7 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
       setMessage(error.message);
     }
   };
-  const findSubtitles = async () => {
+  const findSubtitles = async (external = false) => {
     request.current?.abort();
     setSearching(true);
     setMessage("");
@@ -118,9 +126,12 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
     request.current = controller;
     const timer = setTimeout(() => controller.abort(), 30000);
     try {
-      const response = await fetch(`/api/subtitles/${animeId}/${episode}`, {
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `/api/subtitles/${animeId}/${episode}${external ? "?external=1" : ""}`,
+        {
+          signal: controller.signal,
+        },
+      );
       if (!response.ok)
         throw new Error(
           "Subtitle source is unavailable. You can load an SRT/VTT file.",
@@ -131,13 +142,19 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
       );
       if (!caption)
         setMessage(
-          "No English subtitle file was found for this episode. You can load your own SRT/VTT.",
+          data.message ||
+            "No English subtitle file was found for this episode. You can load your own SRT/VTT.",
         );
       else
         addTrack(
-          caption.url,
+          caption.vtt
+            ? URL.createObjectURL(
+                new Blob([subtitleToVtt(caption.vtt)], { type: "text/vtt" }),
+              )
+            : caption.url,
           audio === "dub" ? "English (SUB translation)" : caption.label,
           "en",
+          !external && !caption.vtt,
         );
     } catch (error) {
       if (!controller.signal.aborted) setMessage(error.message);
@@ -205,7 +222,7 @@ export default function SubtitleControls({ video, animeId, episode, audio }) {
               subtitles.
             </p>
           )}
-          <button disabled={searching} onClick={findSubtitles}>
+          <button disabled={searching} onClick={() => findSubtitles(true)}>
             {searching ? "Looking for subtitles…" : "Find English subtitles"}
           </button>
           <label className="subtitle-upload">

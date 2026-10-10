@@ -46,9 +46,11 @@ export default function DirectEpisode({
     embedded &&
     (() => {
       try {
-        return ["https://filesforever.link", "https://desidubanime.p2pplay.pro", "https://ani.pm"].includes(
-          new URL(embedded).origin,
-        );
+        return [
+          "https://filesforever.link",
+          "https://desidubanime.p2pplay.pro",
+          "https://ani.pm",
+        ].includes(new URL(embedded).origin);
       } catch {
         return false;
       }
@@ -217,7 +219,7 @@ export default function DirectEpisode({
           ))}
         </div>
       </div>
-      {!!live.data?.media?.servers?.length && (
+      {!!live.data?.media && (
         <div className="stream-toolbar">
           <label>
             Playback server{" "}
@@ -226,14 +228,25 @@ export default function DirectEpisode({
               value={embedded || "native"}
               onChange={(e) => selectServer(e.target.value)}
             >
-              <option value="native">SoraiX native player</option>
-              {live.data.media.servers.map((s) => (
+              <option
+                value="native"
+                disabled={!live.data.media.sources?.length}
+              >
+                SoraiX native player
+                {!live.data.media.sources?.length ? " (unavailable)" : ""}
+              </option>
+              {(live.data.media.servers || []).map((s) => (
                 <option key={s.url} value={s.url}>
                   {s.name} · external player
                 </option>
               ))}
             </select>
           </label>
+          {!live.data.media.servers?.length && (
+            <small role="status">
+              Only the native source is currently available for this episode.
+            </small>
+          )}
         </div>
       )}
       {fallbackNotice?.key === serverKey && embedded && (

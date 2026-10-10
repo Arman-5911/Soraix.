@@ -22,6 +22,9 @@ export function WatchableCollection({
       {live.data.partial && (
         <p role="status">
           Some sources did not respond. Retry to check them again.
+          <button className="button secondary small" onClick={live.retry}>
+            Retry sources
+          </button>
         </p>
       )}
       {!live.data.items.length && (
@@ -34,7 +37,7 @@ export function WatchableCollection({
           <Link
             className="direct-collection-card"
             key={a.id}
-            to={`/watch/${a.slug}?ep=${a.firstEpisode || 1}${audio === "hi" ? "&audio=hi" : ""}`}
+            to={`/watch/${a.slug}?ep=${a.firstEpisode || 1}${audio ? `&audio=${audio}` : ""}`}
           >
             <img src={a.banner || a.poster} alt="" loading="lazy" />
             <span className="direct-collection-label">IN-SITE PLAYER</span>
@@ -77,7 +80,9 @@ export default function Watchable() {
   const [params, setParams] = useSearchParams();
   const page = Math.max(1, Number(params.get("page")) || 1);
   const query = params.get("q") || "";
-  const audio = params.get("audio") === "hi" ? "hi" : "";
+  const audio = ["hi", "dub", "sub"].includes(params.get("audio"))
+    ? params.get("audio")
+    : "";
   const changePage = (number) =>
     setParams({ q: query, audio, page: String(number) });
   return (
@@ -122,6 +127,16 @@ export default function Watchable() {
         >
           All audio
         </button>
+        {["sub", "dub"].map((value) => (
+          <button
+            key={value}
+            aria-pressed={audio === value}
+            className={audio === value ? "active" : ""}
+            onClick={() => setParams({ q: query, page: "1", audio: value })}
+          >
+            {value === "sub" ? "SUB" : "English DUB"}
+          </button>
+        ))}
         <button
           aria-pressed={audio === "hi"}
           className={audio === "hi" ? "active" : ""}

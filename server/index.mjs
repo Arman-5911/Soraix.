@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { apiHandler } from "./api.mjs";
+import { applySecurityHeaders } from "./security-headers.mjs";
+import { restrictedPath } from "./request-guard.mjs";
 try {
   process.loadEnvFile();
 } catch {}
@@ -21,11 +23,7 @@ const types = {
   ".woff2": "font/woff2",
 };
 const server = http.createServer(async (req, res) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Content-Security-Policy", "frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  applySecurityHeaders(res);
   if (await apiHandler(req, res)) return;
   if (!["GET", "HEAD"].includes(req.method)) {
     res.writeHead(405);
@@ -36,6 +34,11 @@ const server = http.createServer(async (req, res) => {
     const pathname = decodeURIComponent(
       new URL(req.url, "http://localhost").pathname,
     );
+    if (restrictedPath(pathname)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
     let file = path.resolve(root, "." + pathname);
     if (file !== root && !file.startsWith(root + path.sep)) {
       res.writeHead(403);
@@ -52,7 +55,13 @@ const server = http.createServer(async (req, res) => {
       }
       file = path.join(root, "index.html");
     }
-    const body = await fs.readFile(file);
+    const real = await fs.realpath(file);
+    if (!real.startsWith(root + path.sep)) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    const body = await fs.readFile(real);
     res.setHeader(
       "Content-Type",
       types[path.extname(file)] || "application/octet-stream",

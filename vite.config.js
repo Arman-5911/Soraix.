@@ -13,4 +13,10 @@ const liveApi = {
     server.middlewares.use(apiHandler);
   },
 };
-export default defineConfig({ plugins: [react(), liveApi], build: { sourcemap: false } });
+// No application environment variables are required in the browser bundle.
+// An empty prefix list disables VITE_* exposure (built-in MODE/DEV still work).
+export default defineConfig({
+  envPrefix: [],
+  plugins: [react(), liveApi],
+  build: { sourcemap: false },
+});

@@ -940,6 +940,19 @@ test('SUB subtitles load from local SRT, sync, turn off and stay out of Hindi', 
 
 });
 
+test('missing SUB captions automatically load external VTT and manual search uses external lookup', async ({page}) => {
+ await page.route('**/api/media/**',r=>r.fulfill({json:{episodes:[{number:1,title:'Episode',provider:'audio',availableLanguages:['sub']}]}}));
+ await page.route('**/api/stream/**',r=>r.fulfill({json:{resolvedAt:'external-captions',media:{audio:'sub',sources:[{url:'/caption-video.mp4',type:'file'}],captions:[]}}}));
+ await page.route('**/caption-video.mp4',r=>r.fulfill({contentType:'video/mp4',body:fs.readFileSync(new URL('../fixtures/playback.mp4',import.meta.url))}));
+ const requests=[];
+ await page.route('**/api/subtitles/**',r=>{requests.push(r.request().url());return r.fulfill({json:{captions:[{vtt:'WEBVTT\n\n00:00.100 --> 00:02.000\nExternal English caption\n',language:'en',label:'English · Jimaku'}]}})});
+ await page.goto('/watch/frieren-beyond-journey-s-end-52991?ep=1&audio=sub');
+ await page.waitForFunction(()=>Array.from(document.querySelector('video')?.textTracks||[]).some(t=>t.cues?.[0]?.text==='External English caption'&&t.mode==='showing'));
+ await page.getByRole('button',{name:'Subtitle settings',exact:true}).click();
+ await page.getByRole('button',{name:'Find English subtitles',exact:true}).click();
+ await expect.poll(()=>requests.some(url=>url.endsWith('?external=1'))).toBe(true);
+});
+
 test('SUB failures advance through backups once and ignore spoofed messages', async ({page}) => {
  await page.setViewportSize({width:390,height:844});
  const first='https://ani.pm/embed/ani/154587/1/sub';

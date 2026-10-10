@@ -24,6 +24,21 @@ npm start
 
 ## What is live
 
+### External English captions
+
+The native SUB/English DUB player checks for missing captions after five seconds.
+It tries the episode provider, then Jimaku if configured. **Find English subtitles**
+requests the independent Jimaku lookup directly. Add `JIMAKU_API_KEY` to the server
+environment (Vercel project settings for production), then redeploy. Obtain the key
+from your Jimaku account; see https://jimaku.cc/api/docs. Never use a `VITE_` prefix.
+
+Lookup requires an exact AniList title ID and an explicit matching episode plus an
+English label in the filename. Only SRT/VTT files under 2 MB are accepted; Japanese
+files, archives and ambiguous releases are skipped. Coverage is not guaranteed and
+different releases may need the subtitle delay control. External iframe players
+manage their own captions. Without a key the UI explains that external search is
+not configured; local SRT/VTT upload remains available.
+
 - Worldwide catalogue search, remote pagination and combined type/status/season/year/genre/score filters.
 - Current trending, popular, top-rated, airing, completed, recently updated and movie collections.
 - Anime descriptions, characters, related seasons, recommendations and next airing information.

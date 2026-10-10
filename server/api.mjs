@@ -1,4 +1,6 @@
 import { directLibrary, resolveEpisode } from "./streaming.mjs";
+import { externalSubtitles } from "./subtitles.mjs";
+import { guardApi } from "./request-guard.mjs";
 import { subBackupLibrary, subBackupServers } from "./sub-backup.mjs";
 import { readerImage } from "./reading-sources.mjs";
 import { deliverDub } from "./dub-delivery.mjs";
@@ -15,9 +17,6 @@ import { hindiLibrary, englishLibrary, resolveHindi } from "./hindi.mjs";
 import fs from "node:fs/promises";
 import {
   ApiError,
-  graphql,
-  mediaFields,
-  normalize,
   home,
   browse,
   detail,
@@ -176,17 +175,28 @@ export async function resolveMedia(id, number, language) {
       },
     };
   if (language === "hi") return resolveHindi(id, number);
-  if (language === "dub") return resolveHindi(id, number, "dub");
-  if (language === "sub") {
+  if (language === "sub" || language === "dub") {
     const [primary, backups] = await Promise.allSettled([
-      resolveEpisode(id, number, "sub"),
-      subBackupServers(id, number),
+      language === "dub"
+        ? resolveHindi(id, number, "dub")
+        : resolveEpisode(id, number, "sub"),
+      subBackupServers(id, number, language),
     ]);
     const servers = backups.status === "fulfilled" ? backups.value : [];
     if (primary.status === "fulfilled")
       return {
         ...primary.value,
-        media: { ...primary.value.media, servers },
+        media: {
+          ...primary.value.media,
+          servers: [
+            ...new Map(
+              [...(primary.value.media.servers || []), ...servers].map((s) => [
+                s.url,
+                s,
+              ]),
+            ).values(),
+          ],
+        },
       };
     if (servers.length)
       return {
@@ -195,7 +205,7 @@ export async function resolveMedia(id, number, language) {
         resolvedAt: new Date().toISOString(),
         media: {
           provider: "direct",
-          audio: "sub",
+          audio: language,
           sources: [],
           captions: [],
           servers,
@@ -206,7 +216,15 @@ export async function resolveMedia(id, number, language) {
   return resolveEpisode(id, number, language);
 }
 export async function apiHandler(req, res, next) {
-  const url = new URL(req.url, "http://localhost");
+  let url;
+  try {
+    url = new URL(req.url, "http://localhost");
+  } catch {
+    res.statusCode = 400;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.end(JSON.stringify({ error: "Invalid request URL." }));
+    return true;
+  }
   if (!url.pathname.startsWith("/api/")) {
     next?.();
     return false;
@@ -219,17 +237,36 @@ export async function apiHandler(req, res, next) {
     res.end(JSON.stringify({ error: "Method not allowed." }));
     return true;
   }
+  if (!guardApi(req, res, url)) return true;
   try {
     let value;
     if (/^\/api\/subtitles\/(?:\d+|al\d+)\/\d+(?:\.\d+)?$/.test(url.pathname)) {
       const parts = url.pathname.split("/");
-      const result = await resolveMedia(parts[3], Number(parts[4]), "sub");
-      res.end(
-        JSON.stringify({
-          captions: result.media.captions || [],
-          source: "SUB episode",
-        }),
-      );
+      let captions = [];
+      if (url.searchParams.get("external") !== "1") {
+        try {
+          const result = await resolveMedia(parts[3], Number(parts[4]), "sub");
+          captions = (result.media.captions || []).filter((c) =>
+            /^en(?:-|$)/i.test(c.language),
+          );
+        } catch {
+          /* Subtitle lookup must survive a failed video provider. */
+        }
+      }
+      let result = { captions, source: "SUB episode" };
+      if (!captions.length) {
+        try {
+          result = await externalSubtitles(parts[3], Number(parts[4]));
+        } catch {
+          result = {
+            captions: [],
+            status: "unavailable",
+            message:
+              "External subtitle provider is unavailable. Retry or load an SRT/VTT file.",
+          };
+        }
+      }
+      res.end(JSON.stringify(result));
       return true;
     }
     if (url.pathname === "/api/dub-media") {
@@ -277,35 +314,31 @@ export async function apiHandler(req, res, next) {
       value = { ok: true, service: "SoraiX", version: 2 };
     else if (url.pathname === "/api/home") value = await home();
     else if (url.pathname === "/api/watchable") {
-      const paginated =
-        url.searchParams.has("page") || url.searchParams.has("q");
       const filters = new URLSearchParams(url.searchParams);
-      filters.set("limit", "6");
-      const catalog = paginated ? await browse(filters) : null;
-      const data = catalog
-        ? null
-        : await graphql(
-            `query($ids:[Int]){Page(perPage:50){media(idMal_in:$ids,type:ANIME,isAdult:false){${mediaFields}}}}`,
-            { ids: [52991, 38000, 40748, 20, 21, 16498] },
-          );
+      filters.set("limit", "12");
+      const catalog = await browse(filters);
       const items = [];
-      // Bounded concurrency; every featured title must have a real episode list.
-      const candidates = catalog
-        ? catalog.items
-        : data.Page.media.map(normalize);
+      // Check a bounded page of the full catalogue instead of a fixed shortlist.
+      const candidates = catalog.items;
       let failures = 0;
-      for (let i = 0; i < candidates.length; i += 2) {
+      for (let i = 0; i < candidates.length; i += 4) {
         const results = await Promise.allSettled(
-          candidates.slice(i, i + 2).map(async (a) => {
+          candidates.slice(i, i + 4).map(async (a) => {
             const library =
               url.searchParams.get("audio") === "hi"
                 ? await hindiLibrary(a.id, a)
                 : await availableMedia(a.id, a);
-            return library.episodes.length
+            const audio = url.searchParams.get("audio");
+            const episodes = ["sub", "dub", "hi"].includes(audio)
+              ? library.episodes.filter((e) =>
+                  e.availableLanguages?.includes(audio),
+                )
+              : library.episodes;
+            return episodes.length
               ? {
                   ...a,
-                  playableEpisodes: library.episodes.length,
-                  firstEpisode: library.episodes[0].number,
+                  playableEpisodes: episodes.length,
+                  firstEpisode: episodes[0].number,
                   playbackProvider: library.provider || "Hosted",
                   availableLanguages: [
                     ...new Set(
