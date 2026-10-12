@@ -67,6 +67,24 @@ test.beforeEach(async ({ page }) => {
       localStorage.setItem("soraix-content-mode", '"manga"');
   });
 });
+test("missing MangaDex thumbnail retries the original cover, then shows a local fallback", async ({ page }) => {
+  const resized = "https://uploads.mangadex.org/covers/aa6c76f7-5f5f-46b6-a800-911145f81b9b/cover.jpg.256.jpg";
+  const original = resized.slice(0, -8);
+  let originalRequests = 0;
+  await page.route("**/api/universe?**", (route) => route.fulfill({
+    json: { items: [{ ...item, poster: resized }], pageInfo: { hasNextPage: false } },
+  }));
+  await page.route(resized, (route) => route.fulfill({ status: 404 }));
+  await page.route(original, (route) => {
+    originalRequests += 1;
+    return route.fulfill({ status: 404 });
+  });
+  await page.goto("/search");
+  const cover = page.locator(".universe-card img").first();
+  await expect(cover).toHaveAttribute("src", "/fallback.svg");
+  await expect.poll(() => cover.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+  expect(originalRequests).toBeGreaterThan(0);
+});
 test("source selection loads provider chapters and keeps the source in reader navigation", async ({
   page,
 }) => {

@@ -136,9 +136,19 @@ export function AnimeCard({ a, rank }) {
     </article>
   );
 }
-export function Section({ name, subtitle, items, to, ranked = false }) {
+export function Section({ name, subtitle, items, to, ranked = false, defer = false }) {
   const ref = useRef(null);
   const drag = useRef(null);
+  const [ready, setReady] = useState(!defer);
+  useEffect(() => {
+    if (ready || !ref.current) return;
+    if (!("IntersectionObserver" in window)) { setReady(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setReady(true); observer.disconnect(); }
+    }, { rootMargin: "500px 0px" });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ready]);
   useEffect(() => {
     const element = ref.current;
     if (!ranked || !element) return;
@@ -200,7 +210,7 @@ export function Section({ name, subtitle, items, to, ranked = false }) {
       </div>
       <div
         ref={ref}
-        className={ranked ? "trending-track" : "anime-grid"}
+        className={`${ranked ? "trending-track" : "anime-grid"}${ready ? "" : " section-reserved"}`}
         onDragStart={ranked ? (e) => e.preventDefault() : undefined}
         onPointerDown={
           ranked
@@ -240,7 +250,7 @@ export function Section({ name, subtitle, items, to, ranked = false }) {
           }
         }}
       >
-        {items.map((a, i) => (
+        {ready && items.map((a, i) => (
           <AnimeCard key={a.id + "-" + i} a={a} rank={ranked ? i + 1 : null} />
         ))}
       </div>

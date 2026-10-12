@@ -2,14 +2,25 @@ import React, { useCallback, useEffect, useState } from "react";
 import { hydrate, remember } from "./catalog";
 const cache = new Map(),
   pending = new Map();
-export async function request(path, { force = false } = {}) {
+export async function request(path, { force = false, signal } = {}) {
+  const watchable = path.startsWith("/watchable");
   const old = cache.get(path);
   if (!force && old && Date.now() - old.time < 60_000) return old.data;
-  if (pending.has(path)) return pending.get(path);
+  if (!watchable && pending.has(path)) return pending.get(path);
   const job = (async () => {
     let res;
     try {
-      res = await fetch("/api" + path, { signal: AbortSignal.timeout(35_000) });
+      // Strict Mode immediately cleans up the first effect. Let that cancelled
+      // render settle before starting an expensive provider lookup.
+      if (watchable) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        signal?.throwIfAborted();
+      }
+      res = await fetch("/api" + path, {
+        signal: signal
+          ? AbortSignal.any([signal, AbortSignal.timeout(watchable ? 15_000 : 35_000)])
+          : AbortSignal.timeout(watchable ? 15_000 : 35_000),
+      });
     } catch {
       throw new Error(
         "Unable to reach the live catalogue. Check your connection and retry.",
@@ -45,11 +56,11 @@ export async function request(path, { force = false } = {}) {
     if (cache.size > 300) cache.delete(cache.keys().next().value);
     return data;
   })();
-  pending.set(path, job);
+  if (!watchable) pending.set(path, job);
   try {
     return await job;
   } finally {
-    pending.delete(path);
+    if (!watchable) pending.delete(path);
   }
 }
 export function useResource(
@@ -66,6 +77,7 @@ export function useResource(
   const retry = useCallback(() => setRevision((v) => v + 1), []);
   useEffect(() => {
     let active = true;
+    const controller = path?.startsWith("/watchable") ? new AbortController() : null;
     if (!path) {
       setState({ path, data: null, error: null, loading: false });
       return;
@@ -78,7 +90,7 @@ export function useResource(
         loading: !cache.has(path),
       }));
       try {
-        const data = await request(path, { force });
+        const data = await request(path, { force, signal: controller?.signal });
         if (active) setState({ path, data, error: null, loading: false });
       } catch (error) {
         if (active)
@@ -102,6 +114,7 @@ export function useResource(
       : null;
     return () => {
       active = false;
+      controller?.abort();
       clearInterval(timer);
       window.removeEventListener("focus", onFocus);
     };

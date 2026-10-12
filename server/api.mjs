@@ -2,6 +2,7 @@ import { directLibrary, resolveEpisode } from "./streaming.mjs";
 import { externalSubtitles } from "./subtitles.mjs";
 import { guardApi } from "./request-guard.mjs";
 import { optimizedArtwork } from "./artwork.mjs";
+import { collectWatchable } from "./watchable-collection.mjs";
 import { subBackupLibrary, subBackupServers } from "./sub-backup.mjs";
 import { readerImage } from "./reading-sources.mjs";
 import { deliverDub } from "./dub-delivery.mjs";
@@ -325,13 +326,8 @@ export async function apiHandler(req, res, next) {
       const filters = new URLSearchParams(url.searchParams);
       filters.set("limit", "12");
       const catalog = await browse(filters);
-      const items = [];
-      // Check a bounded page of the full catalogue instead of a fixed shortlist.
-      const candidates = catalog.items;
-      let failures = 0;
-      for (let i = 0; i < candidates.length; i += 4) {
-        const results = await Promise.allSettled(
-          candidates.slice(i, i + 4).map(async (a) => {
+      const { items, failures, partial } = await collectWatchable(catalog.items,
+          async (a) => {
             const library =
               url.searchParams.get("audio") === "hi"
                 ? await hindiLibrary(a.id, a)
@@ -357,14 +353,8 @@ export async function apiHandler(req, res, next) {
                   ],
                 }
               : null;
-          }),
-        );
-        for (const r of results) {
-          if (r.status === "fulfilled" && r.value) items.push(r.value);
-          if (r.status === "rejected") failures++;
-        }
-      }
-      if (!items.length && failures)
+          });
+      if (!items.length && partial)
         throw new ApiError(
           "Featured episode sources are unavailable. Please retry.",
           503,
@@ -372,7 +362,7 @@ export async function apiHandler(req, res, next) {
       value = {
         items,
         pageInfo: catalog?.pageInfo,
-        partial: failures > 0,
+        partial,
         fetchedAt: new Date().toISOString(),
       };
     } else if (url.pathname === "/api/catalog")
@@ -401,6 +391,8 @@ export async function apiHandler(req, res, next) {
         url.searchParams.get("language") || "sub",
       );
     } else throw new ApiError("API route not found.", 404);
+    if (url.pathname === "/api/home")
+      res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=120");
     res.end(JSON.stringify(value));
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 500;

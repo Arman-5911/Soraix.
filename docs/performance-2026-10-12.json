@@ -1,0 +1,64 @@
+{
+  "conditions": "Three cold mobile Chromium runs, 390x844 DPR3, 4x CPU, 1.6Mbps / 150ms, 700ms fixture API delay, live artwork/fonts, splash enabled. Synthetic; not GTmetrix or CrUX.",
+  "before": [
+    {
+      "lcpMs": 7720,
+      "cls": 0.0003907836060078822
+    },
+    {
+      "lcpMs": 5392,
+      "cls": 0.03534339024107897
+    },
+    {
+      "lcpMs": 5156,
+      "cls": 0.03534339024107897
+    }
+  ],
+  "afterBeforePreload": [
+    {
+      "lcpMs": 5504,
+      "cls": 0.03534339024107897,
+      "longTaskCount": 4,
+      "blockingMs": 701,
+      "domElements": 668
+    },
+    {
+      "lcpMs": 4828,
+      "cls": 0.03534339024107897,
+      "longTaskCount": 5,
+      "blockingMs": 531,
+      "domElements": 668
+    },
+    {
+      "lcpMs": 5056,
+      "cls": 0.03534339024107897,
+      "longTaskCount": 4,
+      "blockingMs": 452,
+      "domElements": 668
+    }
+  ],
+  "afterFinalPreload": [
+    {
+      "lcpMs": 4708,
+      "cls": 0.03534339024107897,
+      "longTaskCount": 4,
+      "blockingMs": 581,
+      "domElements": 669
+    },
+    {
+      "lcpMs": 4384,
+      "cls": 0.03534339024107897,
+      "longTaskCount": 4,
+      "blockingMs": 516,
+      "domElements": 669
+    },
+    {
+      "lcpMs": 4296,
+      "cls": 0.03534339024107897,
+      "longTaskCount": 4,
+      "blockingMs": 468,
+      "domElements": 669
+    }
+  ],
+  "note": "BlockingMs is sum of long-task duration beyond 50ms over 12s; not Lighthouse TBT. GTmetrix baseline belongs to user and uses a different environment."
+}

@@ -31,3 +31,20 @@ test("production returns real 404 while known application deep links remain reac
   expect((await request.get("/audit-missing-2026")).status()).toBe(404);
   for (const path of ["/genre/action", "/watch/one-piece-21", "/read/123/chapter-1", "/media/123"]) expect((await request.get(path)).status()).toBe(200);
 });
+
+test("homepage defers watchable API and lower cards until approaching them", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  let watchableCalls = 0;
+  await page.route("**/api/watchable**", route => { watchableCalls++; return route.fulfill({ json: { items: [], pageInfo: { hasNextPage: false } } }); });
+  await page.route("**/api/home", route => route.fulfill({ json: fixture.home }));
+  await page.goto("/");
+  await expect(page.locator(".hero h1")).toBeVisible();
+  expect(watchableCalls).toBe(0);
+  expect(await page.locator(".section-reserved").count()).toBeGreaterThan(0);
+  await page.locator(".watchable-reserved").scrollIntoViewIfNeeded();
+  await expect.poll(() => watchableCalls).toBe(1);
+  await expect(page.locator(".direct-collection")).toBeVisible();
+  await page.getByRole("heading", { name: "Trending now" }).scrollIntoViewIfNeeded();
+  await expect(page.locator(".trending-track .anime-card")).not.toHaveCount(0);
+});

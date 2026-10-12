@@ -1,5 +1,6 @@
 .startup-splash { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; overflow: hidden; isolation: isolate; background: #050812; color: #eaf5ff; animation: splash-exit .4s ease-in 1.7s both; }
 .splash-aurora { position: absolute; width: min(720px, 150vw); aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 40deg, transparent, #72d5ff33, #8762f433, transparent, #68e1bf22, transparent); filter: blur(65px); animation: splash-flow 2.1s ease-out both; z-index: -1; }
+.splash-aurora, .splash-orbit, .splash-streak { will-change: transform, opacity; }
 .splash-orbit { position: absolute; width: min(360px, 78vw); aspect-ratio: 1; border-radius: 50%; border: 1px solid #b6ddff14; box-shadow: 0 0 70px #75caff0a, inset 0 0 55px #75caff08; animation: splash-orbit 1.8s cubic-bezier(.16,1,.3,1) both; z-index: -1; }
 .splash-identity { display: flex; align-items: center; flex-direction: column; text-align: center; padding: 24px; }
 :root .splash-identity .soraix-brand { flex-direction: column; gap: 25px; }

@@ -414,3 +414,5 @@
 :root :is(.segmented button, .top-rank:not(.accent), .updates-head p) { color: #bcb3ca; }
 
 img.hero-art { width: 100%; height: 100%; object-fit: cover; object-position: 70% 42%; }
+.watchable-reserved { min-height: 560px; }
+.section-reserved { min-height: 350px; }

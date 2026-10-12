@@ -22,6 +22,20 @@ import ChapterNarration from "./ChapterNarration";
 import { READ_LISTEN_ENABLED } from "./features";
 import { useUniverse, modeBrand, ModeSwitcher } from "./contentMode";
 const label = (s) => s[0].toUpperCase() + s.slice(1);
+const fallbackPoster = "/fallback.svg";
+function CoverImage({ src, ...props }) {
+  const handleError = (event) => {
+    const image = event.currentTarget;
+    const current = image.getAttribute("src") || "";
+    // MangaDex's resized cover can be missing while the original still exists.
+    if (/^https:\/\/uploads\.mangadex\.org\/covers\/[^/]+\/[^/]+\.256\.jpg$/.test(current)) {
+      image.src = current.slice(0, -8);
+    } else if (current !== fallbackPoster) {
+      image.src = fallbackPoster;
+    }
+  };
+  return <img {...props} src={src || fallbackPoster} onError={handleError} />;
+}
 export function MediaLink({ item, children, ...props }) {
   const { setMode } = useUniverse();
   return (
@@ -44,7 +58,7 @@ function Cards({ items = [] }) {
       {items.map((a) => (
         <MediaLink item={a} key={a.anilistId} className="universe-card">
           <div>
-            <img src={a.poster} alt="" loading="lazy" />
+            <CoverImage src={a.poster} alt="" loading="lazy" />
             <span>{label(a.mode)}</span>
           </div>
           <h3>{a.title.english}</h3>
@@ -97,7 +111,7 @@ export function ReadingHistory({ full = false }) {
               key={h.item.anilistId}
               to={`/read/${h.item.anilistId}/${h.chapter.id}?language=${h.language || "en"}`}
             >
-              <img src={h.item.poster} alt="" />
+              <CoverImage src={h.item.poster} alt="" />
               <div>
                 <strong>{h.item.title.english}</strong>
                 <p>
@@ -137,7 +151,7 @@ export function DonghuaHistory() {
         <div className="reading-history">
           {entries.map((h) => (
             <Link key={h.id} to={`/watch/${h.item.slug}?ep=${h.episode}`}>
-              <img src={h.item.poster} alt="" />
+              <CoverImage src={h.item.poster} alt="" />
               <div>
                 <strong>{h.item.title.english}</strong>
                 <p>
@@ -409,7 +423,7 @@ export function UniverseDetail() {
   return (
     <div className="page universe">
       <section className="book-detail">
-        <img src={item.poster} alt={item.title.english} />
+        <CoverImage src={item.poster} alt={item.title.english} />
         <div>
           <span className="eyebrow">
             {label(item.mode)} · {item.year} · {item.status}

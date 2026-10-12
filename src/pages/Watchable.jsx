@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useResource, NetworkState } from "../services/live";
+import { artworkUrl } from "../artwork";
 export function WatchableCollection({
   path = "/watchable",
   onPage,
@@ -39,7 +40,7 @@ export function WatchableCollection({
             key={a.id}
             to={`/watch/${a.slug}?ep=${a.firstEpisode || 1}${audio ? `&audio=${audio}` : ""}`}
           >
-            <img src={a.banner || a.poster} alt="" loading="lazy" />
+            <img src={artworkUrl(a.banner || a.poster, 640)} alt="" loading="lazy" decoding="async" width="640" height="360" onError={e => { if (!e.currentTarget.dataset.fallback) { e.currentTarget.dataset.fallback = "true"; e.currentTarget.src = a.banner || a.poster; } }} />
             <span className="direct-collection-label">IN-SITE PLAYER</span>
             <div>
               <h3>{a.title.english}</h3>

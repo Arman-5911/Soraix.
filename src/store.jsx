@@ -5,6 +5,7 @@ import React, {
   useState,
   useRef,
   useCallback,
+  useMemo,
 } from "react";
 import { persistTitle } from "./services/catalog";
 const Context = createContext(null);
@@ -60,41 +61,32 @@ export function AppProvider({ children }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
-  const notify = (message) => setToast(message);
-  const toggleWatchlist = (id) => {
+  const notify = useCallback((message) => setToast(message), []);
+  const toggleWatchlist = useCallback((id) => {
     persistTitle(id);
     const exists = watchlist.includes(id);
     setWatchlist((v) => (exists ? v.filter((x) => x !== id) : [...v, id]));
     notify(
       exists ? "Removed from your watchlist" : "Added to your SoraiX Watchlist",
     );
-  };
-  const saveProgress = (entry) => {
+  }, [watchlist, setWatchlist, notify]);
+  const saveProgress = useCallback((entry) => {
     persistTitle(entry.id);
     setHistory((h) =>
       [entry, ...h.filter((x) => x.id !== entry.id)].slice(0, 100),
     );
-  };
-  const title = (a) =>
-    a?.title?.[language === "JP" ? "romaji" : "english"] || "Unknown title";
+  }, [setHistory]);
+  const title = useCallback((a) =>
+    a?.title?.[language === "JP" ? "romaji" : "english"] || "Unknown title", [language]);
+  const contextValue = useMemo(() => ({
+    language, setLanguage, watchlist, setWatchlist, history, setHistory,
+    recent, setRecent, theme, setTheme, notify, toggleWatchlist,
+    saveProgress, title,
+  }), [language, setLanguage, watchlist, setWatchlist, history, setHistory,
+    recent, setRecent, theme, setTheme, notify, toggleWatchlist, saveProgress, title]);
   return (
     <Context.Provider
-      value={{
-        language,
-        setLanguage,
-        watchlist,
-        setWatchlist,
-        history,
-        setHistory,
-        recent,
-        setRecent,
-        theme,
-        setTheme,
-        notify,
-        toggleWatchlist,
-        saveProgress,
-        title,
-      }}
+      value={contextValue}
     >
       {children}
       {toast && (

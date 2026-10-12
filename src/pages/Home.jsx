@@ -1,7 +1,6 @@
 import GlassWidgets from "../GlassWidgets";
 import { artworkUrl } from "../artwork";
-import { WatchableCollection } from "./Watchable";
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Play,
@@ -20,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useApp } from "../store";
+const WatchableCollection = lazy(() => import("./Watchable").then(module => ({ default: module.WatchableCollection })));
 import { Section, IconButton, Poster, Badges } from "../components";
 import {
   anime,
@@ -242,6 +242,22 @@ function Hero() {
     </section>
   );
 }
+function DeferredWatchable() {
+  const marker = useRef(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (ready || !marker.current) return;
+    if (!('IntersectionObserver' in window)) { setReady(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setReady(true); observer.disconnect(); }
+    }, { rootMargin: '400px 0px' });
+    observer.observe(marker.current);
+    return () => observer.disconnect();
+  }, [ready]);
+  return <div ref={marker} className={ready ? undefined : 'watchable-reserved'}>
+    {ready && <Suspense fallback={null}><WatchableCollection /></Suspense>}
+  </div>;
+}
 const isEnglish = (t) => t.startsWith("Frieren");
 function TopTen() {
   const [tab, setTab] = useState("Trending");
@@ -351,12 +367,13 @@ export default function Home() {
             Find your anime <ArrowUpRight size={15} />
           </Link>
         </div>
-        <WatchableCollection />
+        <DeferredWatchable />
         <Section
           name="Trending now"
           subtitle="The stories everyone’s talking about."
           items={getTrendingAnime()}
           ranked
+          defer
           to="/most-popular"
         />
         <ContinueWatching />
@@ -385,6 +402,7 @@ export default function Home() {
             <Section
               name="Recently updated"
               items={updated.slice(0, 10)}
+              defer
               to="/recently-updated"
             />
             <Link className="schedule-banner" to="/schedule">
@@ -404,18 +422,21 @@ export default function Home() {
               name="The essentials"
               subtitle="Extraordinary stories. A place on every watchlist."
               items={getPopularAnime().slice(0, 5)}
+              defer
               to="/most-popular"
             />
             <Section
               name="Currently on air"
               subtitle="Follow the story as it unfolds."
               items={getTopAiring().slice(0, 5)}
+              defer
               to="/top-airing"
             />
             <Section
               name="A story, complete"
               subtitle="Your next all-night adventure."
               items={(homeData.completed || []).slice(0, 5)}
+              defer
               to="/completed"
             />
           </div>
@@ -444,6 +465,7 @@ export default function Home() {
           name="Movie night, sorted"
           subtitle="Big feelings. Beautiful worlds. One sitting."
           items={homeData.movies || []}
+          defer
           to="/movies"
         />
         <div className="closing-banner">

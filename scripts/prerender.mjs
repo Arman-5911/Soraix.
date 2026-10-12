@@ -17,7 +17,7 @@ for (const route of paths) {
   ] }).replaceAll("<", "\\u003c");
   const html = template.replace(/<title>.*?<\/title>/s, `<title>${escape(landingTitle(route))}</title>`)
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/?>)/, `$1${escape(pageDescription(route))}$2`)
-    .replace("</head>", `<link rel="canonical" href="${escape(url)}"><script type="application/ld+json" id="website-schema">${schema}</script></head>`)
+    .replace("</head>", `${route === "/" ? '<link rel="preload" href="/api/home" as="fetch" crossorigin>' : ""}<link rel="canonical" href="${escape(url)}"><script type="application/ld+json" id="website-schema">${schema}</script></head>`)
     .replace('<div id="site-overview"></div>', `<div id="site-overview">${renderToString(React.createElement(LandingContent, { pathname: route }))}</div>`);
   const directory = path.join("dist", route.slice(1));
   await fs.mkdir(directory, { recursive: true });

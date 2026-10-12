@@ -10,9 +10,10 @@ try {
     const page = await context.newPage();
     await page.addInitScript(() => {
       localStorage.setItem("soraix-theme", '"glass"');
-      window.auditMetrics = { lcp: 0, cls: 0, element: "" };
+      window.auditMetrics = { lcp: 0, cls: 0, element: "", longTaskCount: 0, blockingMs: 0 };
       new PerformanceObserver(list => { for (const e of list.getEntries()) { window.auditMetrics.lcp = e.startTime; window.auditMetrics.element = e.element?.className || e.element?.tagName || ""; } }).observe({ type: "largest-contentful-paint", buffered: true });
       new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) window.auditMetrics.cls += e.value; }).observe({ type: "layout-shift", buffered: true });
+      new PerformanceObserver(list => { for (const e of list.getEntries()) { window.auditMetrics.longTaskCount++; window.auditMetrics.blockingMs += Math.max(0, e.duration - 50); } }).observe({ type: "longtask", buffered: true });
     });
     // Stable catalogue removes upstream timing/content changes from the comparison.
     await page.route("**/api/**", async route => {
@@ -27,11 +28,11 @@ try {
     await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
     await page.goto(base, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(12000);
-    results.push(await page.evaluate(() => ({ ...window.auditMetrics, overflow: document.documentElement.scrollWidth > innerWidth })));
+    results.push(await page.evaluate(() => ({ ...window.auditMetrics, domElements: document.getElementsByTagName("*").length, overflow: document.documentElement.scrollWidth > innerWidth })));
     await context.close();
   }
 } finally { await browser.close(); }
 await fs.mkdir("test-results", { recursive: true });
-const report = { base, conditions: "3 cold Chromium mobile runs; CPU 4x; 1.6 Mbps/150ms; fixed API fixtures delayed 700ms; live artwork/fonts; splash enabled. Synthetic, not Lighthouse/CrUX.", results };
+const report = { base, conditions: "3 cold Chromium mobile runs; CPU 4x; 1.6 Mbps/150ms; fixed API fixtures delayed 700ms; live artwork/fonts; splash enabled. Blocking time is long-task duration beyond 50ms over 12s, not Lighthouse TBT. Synthetic, not Lighthouse/CrUX.", results };
 await fs.writeFile(`test-results/performance-${process.argv[2] || "current"}.json`, JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
