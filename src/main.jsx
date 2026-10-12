@@ -44,8 +44,13 @@ function Overview() {
   return <LandingContent pathname={pathname} mode={mode} />;
 }
 const overview = document.getElementById("site-overview");
-if (overview.hasChildNodes()) hydrateRoot(overview, <Overview />);
-else createRoot(overview).render(<Overview />);
+const mountOverview = () => {
+  if (overview.hasChildNodes()) hydrateRoot(overview, <Overview />);
+  else createRoot(overview).render(<Overview />);
+};
+if ("requestIdleCallback" in window)
+  window.requestIdleCallback(mountOverview, { timeout: 1500 });
+else setTimeout(mountOverview, 0);
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
