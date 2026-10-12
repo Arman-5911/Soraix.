@@ -2,12 +2,34 @@ node_modules/
 dist/
 test-results/
 playwright-report/
-.env.local
-
 .env
-private/
 .env.*
 !.env.example
 .vercel/
+private/
+
+# Local credentials and signing material
+.npmrc
+.pypirc
+.netrc
+.signing/
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials.json
+client_secret*.json
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+
+# Local data and packaged application builds
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.apk
+*.aab

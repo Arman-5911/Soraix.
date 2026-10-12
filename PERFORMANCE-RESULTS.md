@@ -32,3 +32,25 @@ A cold waterfall after the changes showed entry JS starting at ~222ms and taking
 - GTmetrix Performance 90+, LCP <2.5s and TBT <200ms remain unverified and must not be claimed. Deploy first, then rerun GTmetrix under the same location, browser and throttling profile. Collect an actual production waterfall and check `x-vercel-cache` on `/api/home` before further changes.
 
 References: [Intersection Observer](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API), [Vercel Cache-Control](https://vercel.com/docs/caching/cache-control-headers).
+
+## Phase 2 — GTmetrix report of 2026-10-12
+
+The supplied Seattle GTmetrix report measured Performance 46%, Structure 98%, LCP 3.0s, TBT 808ms, TTI 2.6s, CLS 0.05, fully loaded 9.9s, 1.02MB and 36 requests. Its waterfall includes a 7.2s `/watchable` request and a 142KB Rajdhani Bold TTF transfer. These figures describe the deployed version at the time of that report, not this local working tree.
+
+The watchable endpoint checks up to 12 anime against several external episode providers; it has no database query. The homepage already defers this section until it approaches the viewport, uses six bounded workers, a 10s source-check budget, client cancellation on unmount, and client-side caching. Phase 2 adds a 30-second Vercel edge-cache policy only for complete, successful, public `/watchable` responses. Partial and failed responses remain uncached. A local cold `Frieren` SUB lookup took 8.636s; an immediate repeat in the same server process took 0.351s using existing provider caches. Edge-cache benefit still needs verification after deployment; the cold provider latency remains.
+
+The logo's Rajdhani Bold font was the largest individually identified static bottleneck. Its 400,680-byte source TTF was replaced by an 8,940-byte Latin WOFF2 subset with the same glyph outlines. The existing OFL license is retained. The visible logo font is preloaded and its versioned file receives one-year immutable caching in Vercel and the standalone production server. Hashed JS/CSS assets already had immutable caching; generic pages and unversioned assets remain revalidatable.
+
+Desktop poster cards previously selected a 320px WebP for an approximately 202px rendered card. The artwork API and `srcset` now include a 240px variant; high-density screens continue to choose larger sizes. On one live AniList cover, the 240px WebP was 23,218 bytes versus 37,064 bytes at 320px. This is a per-image sample, not a measured whole-page saving. The hero retains its eager, high-priority image and existing design. Loading skeletons now animate a translated gradient overlay instead of repainting `background-position`. Existing motion and reduced-motion behavior remain.
+
+Three cold local Chromium mobile runs used 390×844, DPR 3, 4× CPU slowdown, 1.6 Mbps/150ms networking, a fixed home API fixture delayed 700ms, and live artwork/fonts. The same script and production server were used before and after. These are synthetic diagnostics, not GTmetrix or Lighthouse results; the before run values were 7.284/4.852/4.568s LCP and 1016/795/789ms long-task blocking sum. The final after run values are retained in `docs/performance-phase2-final.txt`.
+
+| Metric | Before median | Final after median | Notes |
+| --- | ---: | ---: | --- |
+| LCP | 4.852s | 4.860s | No demonstrated improvement; hero image was LCP. |
+| Long-task blocking sum over 12s | 795ms | 745ms | Not Lighthouse TBT; difference is small relative to run variance. |
+| CLS | 0.03534 | 0.03522 | Essentially unchanged and under 0.1 locally. |
+| DOM elements after 12s | 669 | 670 | No meaningful DOM reduction; lower grids were already deferred. |
+| GTmetrix TBT, TTI, page size, requests, score | Report baseline only | Not measured after deployment | Do not extrapolate local results into a new GTmetrix score. |
+
+Validation: final production build and all 70 unit tests passed; a production browser run passed 33 tests with one intentionally skipped feature test. Browser checks covered watchable deferral, route status, mobile/desktop layout, player flows, artwork fallback and reader flows. A separate desktop browser check confirmed a 202px card selects the new 240px image. The production server returned the WOFF2 with `immutable` caching and the old TTF URL with 404. The remaining bottlenecks are cold external-provider lookups and the large client bundle/hero render chain; neither 90+ Performance nor LCP below 2.5s is established. Rerun GTmetrix after deploying under the same test settings and inspect the Vercel `x-vercel-cache` header on repeated `/api/watchable` requests.

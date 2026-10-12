@@ -391,6 +391,8 @@ export async function apiHandler(req, res, next) {
         url.searchParams.get("language") || "sub",
       );
     } else throw new ApiError("API route not found.", 404);
+    if (url.pathname === "/api/watchable" && !value.partial)
+      res.setHeader("Cache-Control", "public, max-age=0, s-maxage=30, stale-while-revalidate=30");
     if (url.pathname === "/api/home")
       res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=120");
     res.end(JSON.stringify(value));

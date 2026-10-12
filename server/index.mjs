@@ -75,7 +75,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader(
       "Cache-Control",
-      file.includes(path.sep + "assets" + path.sep)
+      file.includes(path.sep + "assets" + path.sep) || file.endsWith(path.sep + "Rajdhani-Bold-latin-v1.woff2")
         ? "public,max-age=31536000,immutable"
         : "no-cache",
     );

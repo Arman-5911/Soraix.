@@ -7,5 +7,5 @@ export function artworkUrl(url, width = 320) {
   } catch { return url; }
 }
 export function artworkSrcSet(url) {
-  return artworkUrl(url) !== url ? [160, 320, 460, 640].map(w => `${artworkUrl(url, w)} ${w}w`).join(", ") : undefined;
+  return artworkUrl(url) !== url ? [160, 240, 320, 460, 640].map(w => `${artworkUrl(url, w)} ${w}w`).join(", ") : undefined;
 }

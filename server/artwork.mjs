@@ -1,6 +1,6 @@
 import sharp from "sharp";
 import { ApiError } from "./anilist.mjs";
-const widths = new Set([160, 320, 460, 640, 960, 1280]);
+const widths = new Set([160, 240, 320, 460, 640, 960, 1280]);
 const cache = new Map();
 const pending = new Map();
 let bytes = 0;

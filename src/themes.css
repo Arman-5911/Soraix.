@@ -748,7 +748,7 @@
   :root .soraix-brand .soraix-mark, :root .soraix-brand .soraix-letter-x { animation: none; transition: none; transform: none; }
 }
 
-@font-face { font-family: "SoraiX Display"; src: url("/fonts/Rajdhani-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "SoraiX Display"; src: url("/fonts/Rajdhani-Bold-latin-v1.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
 :root, [data-brand-mode="anime"] { --brand-color: #72d5ff; --brand-light: #dbf8ff; --brand-deep: #6276ff; }
 :root[data-content-mode="manga"], [data-brand-mode="manga"] { --brand-color: #ff9fbb; --brand-light: #ffe1eb; --brand-deep: #ef527f; }
 :root[data-content-mode="manhwa"], [data-brand-mode="manhwa"] { --brand-color: #bfa1ff; --brand-light: #f0e3ff; --brand-deep: #8762f4; }

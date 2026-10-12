@@ -5,6 +5,7 @@ import { artworkRequest, optimizedArtwork } from "../server/artwork.mjs";
 const url = "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/test.png";
 test("artwork accepts only known CDN paths and bounded output widths", () => {
   assert.equal(artworkRequest(url, 320).hostname, "s4.anilist.co");
+  assert.equal(artworkRequest(url, 240).hostname, "s4.anilist.co");
   for (const input of ["http://127.0.0.1/a.png", url + "?redirect=x", url.replace("s4.anilist.co", "s4.anilist.co.evil.test"), url.replace("/anime/", "/private/"), url.replace("https://", "https://user:password@")]) assert.throws(() => artworkRequest(input, 320));
   assert.throws(() => artworkRequest(url, 10000));
 });
