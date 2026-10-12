@@ -77,12 +77,15 @@ export function useResource(
   const retry = useCallback(() => setRevision((v) => v + 1), []);
   useEffect(() => {
     let active = true;
+    let inFlight = false;
     const controller = path?.startsWith("/watchable") ? new AbortController() : null;
     if (!path) {
       setState({ path, data: null, error: null, loading: false });
       return;
     }
     const load = async (force = false) => {
+      if (inFlight) return;
+      inFlight = true;
       setState((s) => ({
         path,
         data: s.path === path ? s.data : cache.get(path)?.data,
@@ -100,11 +103,13 @@ export function useResource(
             error,
             loading: false,
           }));
+      } finally {
+        inFlight = false;
       }
     };
     load(revision > 0);
     const onFocus = () => {
-      if (!document.hidden) load();
+      if (!document.hidden && Date.now() - (cache.get(path)?.time || 0) >= 60_000) load();
     };
     if (refreshOnFocus) window.addEventListener("focus", onFocus);
     const timer = interval

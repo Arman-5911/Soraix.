@@ -250,7 +250,7 @@ function DeferredWatchable() {
     if (!('IntersectionObserver' in window)) { setReady(true); return; }
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) { setReady(true); observer.disconnect(); }
-    }, { rootMargin: '400px 0px' });
+    }, { rootMargin: '100px 0px' });
     observer.observe(marker.current);
     return () => observer.disconnect();
   }, [ready]);
