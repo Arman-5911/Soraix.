@@ -50,6 +50,11 @@ export default function App() {
     window.dispatchEvent(new Event("soraix:navigation"));
   }, [location.pathname, mode]);
   useEffect(() => {
+    const overview = document.getElementById("site-overview");
+    const slot = document.getElementById("overview-slot");
+    if (overview && slot && overview.parentElement !== slot) slot.append(overview);
+  }, []);
+  useEffect(() => {
     const slug = location.pathname.split("/")[2];
     const a = /^\/(anime|watch)\//.test(location.pathname)
       ? liveAnime.data?.anime || getAnimeDetails(slug)
@@ -207,16 +212,21 @@ export default function App() {
           </Routes>
         </Suspense>
       </main>
+      <div id="overview-slot" />
       {mode === "anime" ? (
         <Footer />
       ) : (
         <footer className="universe-footer">
-          SoraiX ? Watch. Read. Discover.
+          <div className="universe-footer-brand">
+            <Link to="/">SoraiX <span>{mode[0].toUpperCase() + mode.slice(1)}</span></Link>
+            <p>Watch. Read. Discover.</p>
+          </div>
           <nav>
             <Link to="/about">About</Link>
             <Link to="/privacy">Privacy</Link>
             <Link to="/copyright">Copyright</Link>
           </nav>
+          <small>© {new Date().getFullYear()} SoraiX</small>
         </footer>
       )}
     </>

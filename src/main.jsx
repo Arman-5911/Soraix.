@@ -9,6 +9,7 @@ import { UniverseProvider } from "./contentMode";
 import "./styles.css";
 import './themes.css';
 import './glass-refinements.css';
+import './pearl-theme.css';
 class ErrorBoundary extends React.Component {
   state = { error: false };
   static getDerivedStateFromError() {

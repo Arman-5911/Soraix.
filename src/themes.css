@@ -764,16 +764,19 @@
 }
 :root .soraix-brand .soraix-letter-x { background: none; color: var(--brand-color); margin-left: 2px; }
 :root .soraix-brand .brand-mode {
-  color: var(--brand-light); background: color-mix(in srgb,var(--brand-color) 12%,transparent);
-  border: 1px solid color-mix(in srgb,var(--brand-color) 30%,transparent);
-  border-radius: 5px; padding: 3px 6px; align-self: flex-start;
-  font-size: 8px; font-weight: 700; letter-spacing: .18em; line-height: 1;
+  color: var(--brand-light); background: color-mix(in srgb,var(--brand-color) 14%,transparent);
+  border: 1px solid color-mix(in srgb,var(--brand-color) 38%,transparent);
+  border-radius: 6px; padding: 4px 8px; align-self: flex-start;
+  font-family: "Manrope", sans-serif; font-size: 10px; font-weight: 800;
+  font-style: normal; letter-spacing: .14em; line-height: 1.15;
+  text-transform: uppercase; white-space: nowrap;
 }
 :root .soraix-brand > .soraix-lockup { gap: 6px; }
 :root .soraix-brand .soraix-mark { filter: drop-shadow(0 4px 10px color-mix(in srgb,var(--brand-color) 25%,transparent)); }
 :root .soraix-brand:hover .soraix-mark { filter: drop-shadow(0 4px 13px color-mix(in srgb,var(--brand-color) 45%,transparent)); }
 :root :is(.mode-switcher select, .desktop-nav a.active, .universe-header nav a.active) { border-color: color-mix(in srgb,var(--brand-color) 40%,transparent); color: var(--brand-light); }
 @media(max-width:600px) { :root .soraix-brand .soraix-wordmark { font-size: 28px; } }
+@media(max-width:600px) { :root .soraix-brand .brand-mode { font-size: 9px; letter-spacing: .12em; padding: 3px 7px; } }
 
 /* Use the browser picker arrow only when the glass picker is supported. */
 @supports (appearance: base-select) {

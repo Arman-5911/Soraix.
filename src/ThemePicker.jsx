@@ -2,13 +2,14 @@ import React from "react";
 import { useApp } from "./store";
 export const THEMES = [
   ["glass", "Liquid Glass · Dark"],
+  ["pearl", "Pearl Glass · Dark"],
   ["midnight", "Midnight black"],
   ["dim", "Soft charcoal"],
 ];
 export default function ThemePicker() {
-  const { theme, setTheme } = useApp();
+  const { theme, setTheme, openPearlPalette } = useApp();
   return (
-    <label className="theme-picker">
+    <div className="theme-picker">
       <span>Appearance</span>
       <select
         aria-label="Theme"
@@ -21,6 +22,12 @@ export default function ThemePicker() {
           </option>
         ))}
       </select>
-    </label>
+      {theme === "pearl" && (
+        <button type="button" className="pearl-palette-trigger"
+          onClick={openPearlPalette} aria-label="Change Pearl Glass background">
+          Colors
+        </button>
+      )}
+    </div>
   );
 }

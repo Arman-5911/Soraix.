@@ -257,6 +257,69 @@
 .reader-toolbar input {
   width: 95px;
 }
+.reader-fullscreen-button,
+.reader-scale-button,
+.reader-reveal {
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent, #a78bfa) 50%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent, #a78bfa) 22%, #171220);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.reader-fullscreen-button:focus-visible,
+.reader-scale-button:focus-visible,
+.reader-reveal:focus-visible { outline: 2px solid var(--accent, #a78bfa); outline-offset: 2px; }
+.reader-scale-button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent, #a78bfa) 50%, #171220);
+  border-color: var(--accent, #a78bfa);
+}
+.reader-immersive,
+.reader:fullscreen {
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 0;
+}
+.reader-fullwindow {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.reader-immersive .reader-toolbar,
+.reader-immersive .reader-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 31;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+.reader-immersive .reader-toolbar { top: 0; }
+.reader-immersive .reader-bottom { bottom: 0; }
+.reader-controls-hidden .reader-toolbar,
+.reader-controls-hidden .reader-bottom {
+  opacity: 0;
+  pointer-events: none;
+}
+.reader-controls-hidden .reader-toolbar { transform: translateY(-100%); }
+.reader-controls-hidden .reader-bottom { transform: translateY(100%); }
+.reader-immersive .reader-pages { margin: 0 auto; }
+.reader-immersive .reader-pages.single img,
+.reader-immersive .reader-pages.double img { height: 100dvh; max-height: 100dvh; }
+.reader-immersive .reader-pages.vertical img { scroll-margin-top: 0; }
+.reader-reveal {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 32;
+  opacity: .48;
+  backdrop-filter: blur(16px);
+}
+.reader-reveal:hover,
+.reader-reveal:focus-visible { opacity: 1; }
 .reader-pages {
   margin: 24px auto;
   max-width: 100%;
@@ -407,17 +470,50 @@
 }
 
 .universe-footer {
-  padding: 40px 5%;
-  border-top: 1px solid #ffffff14;
-  color: #aaa3b8;
+  padding: 38px 5%;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  color: #c7c0d3;
   display: flex;
   justify-content: space-between;
-  gap: 24px;
+  align-items: center;
+  gap: 20px 36px;
   flex-wrap: wrap;
 }
 .universe-footer nav {
   display: flex;
-  gap: 20px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.universe-footer-brand > a {
+  color: #f5f2fa;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  text-decoration: none;
+}
+.universe-footer-brand span { color: var(--accent); font-size: 12px; letter-spacing: .02em; }
+.universe-footer-brand p { margin: 3px 0 0; font-size: 12px; }
+.universe-footer nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid #ffffff14;
+  border-radius: 12px;
+  background: #ffffff07;
+  color: #e1dbe9;
+  text-decoration: none;
+  transition: background .2s ease, border-color .2s ease;
+}
+.universe-footer nav a:hover { background: #ffffff13; border-color: var(--accent); }
+.universe-footer small { color: #bcb3ca; font-size: 11px; }
+@media (max-width: 600px) {
+  .universe-footer { align-items: flex-start; gap: 18px; padding: 34px 5%; }
+  .universe-footer-brand { width: 100%; }
+  .universe-footer nav { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .universe-footer nav a { transition: none; }
 }
 .universe-header > .logo {
   font-size: 26px;
@@ -434,6 +530,23 @@
     height: calc(100dvh - 310px);
     max-height: calc(100dvh - 310px);
   }
+}
+.reader-immersive .reader-pages.single img,
+.reader-immersive .reader-pages.double img { height: 100dvh; max-height: 100dvh; }
+.reader-pages-fill img {
+  max-width: min(100%, calc(var(--reader-source-width, 960px) * 1.25));
+  margin-inline: auto;
+}
+.reader-pages-fill.single img,
+.reader-pages-fill.double img,
+.reader-immersive .reader-pages-fill.single img,
+.reader-immersive .reader-pages-fill.double img {
+  height: auto;
+  max-height: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader-immersive .reader-toolbar,
+  .reader-immersive .reader-bottom { transition: none; }
 }
 .reader-pages.vertical img {
   scroll-margin-top: 140px;

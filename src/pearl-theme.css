@@ -1,0 +1,890 @@
+/* Pearl Glass: dark graphite glass with tactile, reflected controls. */
+:root[data-theme="pearl"] {
+  color-scheme: dark;
+  --bg: #090d16;
+  --surface: #171e2bdc;
+  --raised: #222d3c;
+  --line: #a1c7ed30;
+  --muted: #c0d0e3;
+  --accent: #91b8ff;
+  --accent-bright: #c2d7ff;
+  --pink: #f1a9cf;
+  --brand-color: #91b8ff;
+  --brand-light: #e3edff;
+  --brand-deep: #a9c7ff;
+  --pearl-ink: #f2f6ff;
+  --pearl-muted: #cbd8e8;
+  --pearl-fill: linear-gradient(150deg, #9bb8d038, #35486259 42%, #0e1829a6);
+  --pearl-shadow: inset 0 1px 1px #ffffff70, inset 0 -2px 3px #050a17a6,
+    0 4px 8px #0008, 0 16px 30px #0005;
+  --opal-ink: #071522;
+  --opal-fill: radial-gradient(ellipse 86% 84% at 24% -8%, #fffdf982 0%, #ffffff34 38%, transparent 78%),
+    linear-gradient(158deg, #f6fbff5e 0%, #d9e7f05b 48%, #839db582 100%);
+  --opal-shadow: inset 0 2px 1px #ffffffb8, inset 0 -2px 3px #4e6985a6,
+    0 2px 2px #03091596, 0 8px 20px #01050dc4, 0 18px 34px #729ce03b;
+  --scroll-track: #101824;
+  --scroll-thumb: #526987;
+  --scroll-hover: #8caff0;
+  --pearl-glow-a: #618ac555;
+  --pearl-glow-b: #765eab49;
+  color: var(--pearl-ink);
+  background: var(--bg);
+}
+:root[data-theme="pearl"][data-content-mode="manga"] { --brand-color: #f69bbb; --brand-deep: #ffc2d5; --accent: #f69bbb; }
+:root[data-theme="pearl"][data-content-mode="manhwa"] { --brand-color: #bea6ff; --brand-deep: #dacbff; --accent: #bea6ff; }
+:root[data-theme="pearl"][data-content-mode="manhua"] { --brand-color: #78dcc1; --brand-deep: #a2f3db; --accent: #78dcc1; }
+:root[data-theme="pearl"][data-content-mode="donghua"] { --brand-color: #ffc087; --brand-deep: #ffdab3; --accent: #ffc087; }
+:root[data-theme="pearl"] [data-brand-mode="manga"] { --brand-color: #f69bbb; --brand-deep: #ffc2d5; }
+:root[data-theme="pearl"] [data-brand-mode="manhwa"] { --brand-color: #bea6ff; --brand-deep: #dacbff; }
+:root[data-theme="pearl"] [data-brand-mode="manhua"] { --brand-color: #78dcc1; --brand-deep: #a2f3db; }
+:root[data-theme="pearl"] [data-brand-mode="donghua"] { --brand-color: #ffc087; --brand-deep: #ffdab3; }
+:root[data-theme="pearl"] body {
+  background: radial-gradient(ellipse 75% 35% at 12% 0%, #618ac55c, transparent),
+    radial-gradient(ellipse 60% 38% at 92% 24%, #765eab36, transparent),
+    linear-gradient(135deg, #090d16, #111725 48%, #0a101b);
+}
+:root[data-theme="pearl"][data-pearl-palette="aurora"] body {
+  background: radial-gradient(ellipse 75% 55% at 12% 8%, #30b2d679, transparent 72%),
+    radial-gradient(ellipse 65% 62% at 90% 44%, #5574dc69, transparent 70%),
+    linear-gradient(145deg, #08151f, #102438 48%, #0a1223);
+}
+:root[data-theme="pearl"][data-pearl-palette="aurora"] { --pearl-glow-a: #30b2d675; --pearl-glow-b: #5574dc69; }
+:root[data-theme="pearl"][data-pearl-palette="amethyst"] body {
+  background: radial-gradient(ellipse 75% 56% at 16% 8%, #8663d378, transparent 72%),
+    radial-gradient(ellipse 70% 62% at 90% 50%, #7657c365, transparent 70%),
+    linear-gradient(145deg, #151022, #211938 48%, #0d1224);
+}
+:root[data-theme="pearl"][data-pearl-palette="amethyst"] { --pearl-glow-a: #8663d378; --pearl-glow-b: #7657c365; }
+:root[data-theme="pearl"][data-pearl-palette="ember"] body {
+  background: radial-gradient(ellipse 76% 53% at 12% 9%, #e2818d6b, transparent 72%),
+    radial-gradient(ellipse 67% 65% at 90% 47%, #dca15565, transparent 70%),
+    linear-gradient(145deg, #1b111b, #30202b 48%, #101724);
+}
+:root[data-theme="pearl"][data-pearl-palette="ember"] { --pearl-glow-a: #e2818d6b; --pearl-glow-b: #dca15565; }
+:root[data-theme="pearl"][data-pearl-palette="jade"] body {
+  background: radial-gradient(ellipse 72% 54% at 11% 9%, #39bfa979, transparent 72%),
+    radial-gradient(ellipse 66% 62% at 92% 45%, #5bab8270, transparent 70%),
+    linear-gradient(145deg, #091b1d, #112c2c 48%, #0a1924);
+}
+:root[data-theme="pearl"][data-pearl-palette="jade"] { --pearl-glow-a: #39bfa979; --pearl-glow-b: #5bab8270; }
+:root[data-theme="pearl"][data-pearl-palette="prism"] {
+  --pearl-glow-a: #78c9ef80; --pearl-glow-b: #df7cdd78;
+}
+:root[data-theme="pearl"][data-pearl-palette="prism"] body {
+  background: radial-gradient(ellipse 75% 58% at 12% 8%, #76c6e972, transparent 72%),
+    radial-gradient(ellipse 70% 62% at 90% 42%, #bc72d469, transparent 70%),
+    linear-gradient(140deg, #0b1525, #251a36 55%, #111723);
+}
+:root[data-theme="pearl"][data-pearl-palette="tidal"] {
+  --pearl-glow-a: #1aa6bb80; --pearl-glow-b: #366ad678;
+}
+:root[data-theme="pearl"][data-pearl-palette="tidal"] body {
+  background: radial-gradient(ellipse 75% 58% at 10% 10%, #178ba885, transparent 72%),
+    radial-gradient(ellipse 68% 62% at 90% 48%, #355cc576, transparent 70%),
+    linear-gradient(140deg, #071a24, #102e3c 50%, #0a1427);
+}
+:root[data-theme="pearl"][data-pearl-palette="solstice"] {
+  --pearl-glow-a: #eb9b5780; --pearl-glow-b: #d55c9a70;
+}
+:root[data-theme="pearl"][data-pearl-palette="solstice"] body {
+  background: radial-gradient(ellipse 76% 58% at 12% 9%, #d58b5480, transparent 72%),
+    radial-gradient(ellipse 68% 62% at 91% 45%, #c25b9272, transparent 70%),
+    linear-gradient(140deg, #25151b, #38212d 50%, #151624);
+}
+:root[data-theme="pearl"][data-pearl-palette="nebula"] {
+  --pearl-glow-a: #8069da80; --pearl-glow-b: #d967bd78;
+}
+:root[data-theme="pearl"][data-pearl-palette="nebula"] body {
+  background: radial-gradient(ellipse 76% 58% at 12% 8%, #7664d480, transparent 72%),
+    radial-gradient(ellipse 68% 62% at 90% 48%, #ba62ac72, transparent 70%),
+    linear-gradient(140deg, #121328, #211b3b 50%, #0d1729);
+}
+/* A single composited glow moves behind the entire interface. */
+:root[data-theme="pearl"] body::before {
+  content: "";
+  position: fixed;
+  inset: -18%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 38% 32% at 24% 24%, var(--pearl-glow-a), transparent 76%),
+    radial-gradient(ellipse 34% 36% at 77% 70%, var(--pearl-glow-b), transparent 78%);
+  opacity: .65;
+  animation: pearl-glow-drift 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+:root[data-theme="pearl"] :is(#root, #site-overview) { position: relative; z-index: 1; }
+@keyframes pearl-glow-drift {
+  from { transform: translate3d(-3%, -2%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="pearl"] body::before { animation: none; transform: none; will-change: auto; }
+}
+:root[data-theme="pearl"] :is(.muted, .tiny-muted, .section-head p, .updates-head p,
+  .card-caption p, .top-meta, .universe-card p, .reading-history p, .book-detail p,
+  .chapter-narration p, .listen-features p, .page-intro p, .footer-note p,
+  .footer-bottom > span, .footer-top > div:first-child > p) { color: var(--pearl-muted); }
+:root[data-theme="pearl"] :is(.eyebrow, .purple, .text-link, .section-actions > a,
+  .section-head > a, .aside-view, .read-now-label) { color: var(--brand-deep); }
+
+/* The image-heavy spotlight and playback canvas keep their cinematic contrast. */
+:root[data-theme="pearl"] :is(.hero, .universe-hero) {
+  border: 1px solid #b7d5ff45;
+  box-shadow: 0 1px 2px #ffffff68 inset, 0 19px 45px #0008;
+}
+:root[data-theme="pearl"] :is(.hero, .universe-hero) :is(h1, p, .eyebrow),
+:root[data-theme="pearl"] .hero .hero-description { color: #e0e8f2; }
+
+:root[data-theme="pearl"] :is(.header, .universe-header, .subnav) {
+  color: var(--pearl-ink);
+  background: linear-gradient(115deg, #243144f2, #151e2de8 65%, #111a29ed);
+  border-color: #a1c7ed38;
+  box-shadow: inset 0 1px #ffffff4d, 0 7px 22px #0008;
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  backdrop-filter: blur(20px) saturate(130%);
+}
+:root[data-theme="pearl"] .subnav { border-bottom: 1px solid #a1c7ed38; }
+:root[data-theme="pearl"] :is(.desktop-nav, .universe-header nav, .subnav nav) a,
+:root[data-theme="pearl"] :is(.drawer > a, .footer-top a, .universe-footer a) {
+  color: #d1dded;
+}
+:root[data-theme="pearl"] :is(.desktop-nav, .universe-header nav, .subnav nav) a.active,
+:root[data-theme="pearl"] .drawer > a.active {
+  color: var(--brand-deep);
+  background: linear-gradient(150deg, #4a5f80, #25334e);
+  border: 1px solid #a6c7ff8c;
+  border-radius: 13px;
+  box-shadow: inset 0 1px #ffffff98, inset 0 -2px #080e1991, 0 5px 12px #0008;
+}
+:root[data-theme="pearl"] .desktop-nav a.active::after { display: none; }
+:root[data-theme="pearl"] .soraix-brand .soraix-wordmark {
+  background: linear-gradient(120deg, #fff 8%, var(--brand-deep) 60%, var(--brand-color));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+:root[data-theme="pearl"] .soraix-brand .brand-mode { color: var(--brand-deep); }
+:root[data-theme="pearl"] .soraix-brand .soraix-letter-x { color: var(--brand-deep); text-shadow: 0 1px #fff8; }
+:root[data-theme="pearl"] .mode-switcher::after { border-color: var(--brand-deep); }
+:root[data-theme="pearl"] .mode-switcher select {
+  color: var(--pearl-ink);
+  -webkit-text-fill-color: var(--pearl-ink);
+}
+:root[data-theme="pearl"] body .mode-switcher select { color: var(--pearl-ink); }
+
+/* Every raised control shares the same three-dimensional edge and light source. */
+:root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button, .header-search,
+  .header-filter, .language-toggle, .small-tabs button, .segmented button,
+  .week-tabs button, .audio-options button, .episode-buttons button,
+  .filter-genres button, .library-pagination button,
+  .player-episode-controls button, .subtitle-toggle, .external-fullscreen-button,
+  .fullscreen-fit-button, .exit-player-fullscreen, .reader-bottom button,
+  .chapter-narration button, .save-card, .settings-panel button) {
+  color: var(--pearl-ink);
+  background: var(--pearl-fill);
+  border: 1px solid #a9c6e873;
+  border-radius: 999px;
+  box-shadow: var(--pearl-shadow);
+  text-shadow: 0 1px #0008;
+  min-height: 42px;
+}
+:root[data-theme="pearl"] :is(.icon-button, .language-toggle, .save-card, .player-episode-controls button,
+  .external-fullscreen-button, .fullscreen-fit-button, .exit-player-fullscreen) { min-width: 42px; }
+:root[data-theme="pearl"] :is(.button, .watchlist-button, .audio-options button,
+  .episode-buttons button, .filter-genres button, .week-tabs button,
+  .small-tabs button, .segmented button, .reader-bottom button) { padding-inline: max(16px, 1em); }
+:root[data-theme="pearl"] .hero-pagination button {
+  min-height: auto;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+:root[data-theme="pearl"] :is(.button.primary, .audio-options button.active,
+  .episode-buttons button.active, .filter-genres button.selected,
+  .week-tabs button.active, .small-tabs button.active, .segmented button.active,
+  button[aria-pressed="true"], .settings-panel button.selected) {
+  color: #fff;
+  background: linear-gradient(150deg, #607db0 3%, #344d7e 45%, #1c2d57);
+  border-color: #a6c7ff;
+  box-shadow: inset 0 2px 2px #ffffff91, inset 0 -2px 3px #08142ba8,
+    0 4px 7px #0008, 0 13px 24px #5374aa37;
+}
+:root[data-theme="pearl"] :is(.icon-button, .save-card, .player-episode-controls button) svg {
+  color: var(--brand-deep);
+  filter: drop-shadow(0 1px 0 #000);
+}
+:root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+  .audio-options button, .episode-buttons button, .filter-genres button,
+  .week-tabs button, .small-tabs button, .segmented button, .chapter-list a,
+  .desktop-nav a, .universe-header nav a, .subnav nav a, .glass-widget,
+  .reader-bottom button, .player-episode-controls button) {
+  transition: transform .23s cubic-bezier(.2,.8,.2,1), box-shadow .23s ease,
+    background-color .23s ease, border-color .23s ease, color .23s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+    .audio-options button, .episode-buttons button, .filter-genres button,
+    .week-tabs button, .small-tabs button, .segmented button, .glass-widget,
+    .chapter-list a, .desktop-nav a, .universe-header nav a, .subnav nav a):hover {
+    transform: translateY(-2px);
+    box-shadow: inset 0 2px #ffffffa3, inset 0 -2px #050a19a6,
+      0 7px 11px #0009, 0 18px 28px #5378be33;
+  }
+}
+:root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+  .audio-options button, .episode-buttons button, .filter-genres button,
+  .week-tabs button, .small-tabs button, .segmented button):active {
+  transform: translateY(2px) scale(.985);
+  box-shadow: inset 0 3px 7px #000b, 0 1px 1px #ffffff4f;
+}
+:root[data-theme="pearl"] :is(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--brand-deep);
+  outline-offset: 3px;
+}
+
+:root[data-theme="pearl"] :is(select, input, textarea, .header-search,
+  .catalog-search, .search-modal input, .universe-filters input,
+  .chapter-narration textarea) {
+  color: var(--pearl-ink);
+  color-scheme: dark;
+  background: linear-gradient(145deg, #2b3a50, #172335);
+  border: 1px solid #9fc1e866;
+  border-radius: 17px;
+  box-shadow: inset 0 2px 3px #ffffff62, inset 0 -2px 3px #050a19a8, 0 5px 12px #0007;
+}
+:root[data-theme="pearl"] :is(input, textarea)::placeholder { color: #afbed3; opacity: 1; }
+:root[data-theme="pearl"] :is(select, .mode-switcher select, .theme-picker select,
+  .reader-toolbar select, .hosted-controls select) {
+  min-height: 46px;
+  max-width: 100%;
+  padding: 11px 38px 11px 18px;
+  cursor: pointer;
+  background: linear-gradient(150deg, #354760, #172335 92%);
+  color: var(--pearl-ink);
+  border: 1px solid #9fc1e875;
+  border-radius: 999px;
+  box-shadow: inset 0 2px #ffffff75, inset 0 -2px #030a16ac, 0 5px 12px #0008;
+}
+:root[data-theme="pearl"] select option { color: var(--pearl-ink); background: #192537; }
+@supports (appearance: base-select) {
+  :root[data-theme="pearl"] select,
+  :root[data-theme="pearl"] select::picker(select) { appearance: base-select; }
+  :root[data-theme="pearl"] .mode-switcher::after { display: none; }
+  :root[data-theme="pearl"] select::picker(select) {
+    color-scheme: dark;
+    background: linear-gradient(140deg, #2a3b51, #111b2b);
+    border: 1px solid #8eb5e26b;
+    border-radius: 22px;
+    box-shadow: 0 18px 38px #000c, inset 0 1px #ffffff69;
+    padding: 7px;
+    max-height: min(380px, 65dvh);
+    overflow-y: auto;
+  }
+  :root[data-theme="pearl"] select option { border-radius: 12px; padding: 10px 12px; }
+  :root[data-theme="pearl"] select option:checked { background: #344f77; color: #fff; }
+}
+
+/* Surfaces throughout discovery, details, reader, modals and the player UI. */
+:root[data-theme="pearl"] :is(.glass-widget, .discovery-strip, .top-ten, .genre-panel,
+  .watchlist-promo, .schedule-banner, .schedule-panel, .schedule-list > a,
+  .week-tabs button, .settings-panel, .filter-panel, .search-modal,
+  .drawer-modal, .book-detail, .reading-history > a, .chapter-list a,
+  .episode-panel, .episode-list, .discussion, .server-panel, .stream-toolbar,
+  .hosted-controls, .player-options, .subtitle-panel, .reader-toolbar,
+  .reader-bottom, .chapter-narration, .listen-features article,
+  .network-state, .empty, .landing-overview, .closing-banner,
+  .direct-collection-card, .toast) {
+  color: var(--pearl-ink);
+  background: var(--pearl-fill);
+  border: 1px solid #9fc1e855;
+  border-radius: 22px;
+  box-shadow: var(--pearl-shadow);
+}
+:root[data-theme="pearl"] :is(.poster-wrap, .universe-card > div) {
+  background: #1c2737;
+  border-radius: 20px;
+  outline: 1px solid #9fc1e855;
+  box-shadow: 0 1px 2px #ffffff6b inset, 0 9px 18px #0009;
+}
+:root[data-theme="pearl"] :is(.card-caption, .universe-card, .top-list,
+  .week-tabs button, .schedule-list > a, .reading-history > a) { color: var(--pearl-ink); }
+:root[data-theme="pearl"] :is(.card-title, .universe-card h3, .top-list strong,
+  .book-detail h1, .reader h1, .landing-overview h2, .section-head h2) { color: var(--pearl-ink); }
+:root[data-theme="pearl"] .quality { background: #1a253bbb; color: #fff; }
+:root[data-theme="pearl"] .universe-card span { background: #243851d9; color: #fff; }
+:root[data-theme="pearl"] .universe-card p { color: var(--pearl-muted); }
+:root[data-theme="pearl"] .landing-overview :is(p, .landing-eyebrow) { color: var(--pearl-muted); }
+:root[data-theme="pearl"] .landing-links a,
+:root[data-theme="pearl"] .genre-cloud a,
+:root[data-theme="pearl"] .glass-app-icon,
+:root[data-theme="pearl"] .filter-genres button {
+  color: var(--pearl-ink);
+  background: var(--pearl-fill);
+  border: 1px solid #9fc1e875;
+  border-radius: 17px;
+  box-shadow: var(--pearl-shadow);
+}
+:root[data-theme="pearl"] :is(.footer-top, footer, .universe-footer) {
+  color: var(--pearl-ink);
+  background: linear-gradient(160deg, #1e2b3c, #101928);
+  border-color: #9fc1e855;
+}
+:root[data-theme="pearl"] :is(.footer-top h3, .footer-top a, .footer-bottom,
+  .universe-footer a, .drawer > a, .drawer > button) { color: #d1dded; }
+:root[data-theme="pearl"] .drawer-modal .drawer { background: transparent; }
+:root[data-theme="pearl"] .drawer > :is(a, button) {
+  color: var(--pearl-ink);
+  background: var(--pearl-fill);
+  border: 1px solid #9fc1e875;
+  border-radius: 16px;
+  box-shadow: var(--pearl-shadow);
+  margin: 5px 0;
+  padding: 12px 14px;
+}
+:root[data-theme="pearl"] .modal-backdrop { background: #030814b8; }
+:root[data-theme="pearl"] :is(.watch-player-session, .hosted-player, .external-player-shell) { background-color: #101824; }
+:root[data-theme="pearl"] .hosted-controls { border-radius: 20px; }
+:root[data-theme="pearl"] .reader { background: transparent; color: var(--pearl-ink); }
+:root[data-theme="pearl"] .reader-pages { background: #0b1220; }
+:root[data-theme="pearl"] .reader-pages img { box-shadow: 0 8px 20px #0009; }
+:root[data-theme="pearl"] .reader-toolbar label { color: var(--pearl-ink); }
+:root[data-theme="pearl"] .startup-splash {
+  color: var(--pearl-ink);
+  background: radial-gradient(circle at 50% 40%, #2d4363, #101929 65%, #070d17);
+}
+:root[data-theme="pearl"] .splash-aurora { opacity: .55; }
+:root[data-theme="pearl"] :is(.splash-identity p, .splash-caption) { color: #bdcde4; }
+
+/* Opal controls float over smoked glass instead of blending into the dark shell. */
+:root[data-theme="pearl"] :is(.header, .universe-header, .subnav) {
+  background: linear-gradient(145deg, #8aa7c044, #1722358f 58%, #101825a6);
+  border-color: #c0ddff4a;
+  box-shadow: inset 0 1px #ffffff75, inset 0 -1px #0008, 0 12px 28px #0007;
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
+  backdrop-filter: blur(18px) saturate(155%);
+}
+:root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+  .header-filter, .language-toggle, .small-tabs button, .segmented button,
+  .week-tabs button, .audio-options button, .episode-buttons button,
+  .filter-genres button, .library-pagination button,
+  .player-episode-controls button, .subtitle-toggle, .external-fullscreen-button,
+  .fullscreen-fit-button, .exit-player-fullscreen, .reader-bottom button,
+  .chapter-narration button, .save-card, .settings-panel button,
+  .drawer > button, .glass-app-icon) {
+  color: var(--opal-ink);
+  background: var(--opal-fill);
+  border: 1px solid #dcecff99;
+  border-bottom-color: #85a6cf;
+  box-shadow: var(--opal-shadow);
+  text-shadow: 0 1px 1px #ffffffc9;
+  -webkit-backdrop-filter: blur(14px) saturate(165%);
+  backdrop-filter: blur(14px) saturate(165%);
+}
+:root[data-theme="pearl"] :is(.button.primary, .audio-options button.active,
+  .episode-buttons button.active, .filter-genres button.selected,
+  .week-tabs button.active, .small-tabs button.active, .segmented button.active,
+  button[aria-pressed="true"], .settings-panel button.selected) {
+  color: #07182c;
+  background: radial-gradient(ellipse 75% 120% at 25% 0%, #fffefd87 0%, #ffffff4e 42%, transparent 78%),
+    linear-gradient(155deg, #e9f2ff70, #bdd3f777 55%, #89addf99);
+  border-color: #dcecffb8;
+  box-shadow: inset 0 2px #fff, inset 0 -2px #628bc2a8,
+    0 3px 3px #0008, 0 10px 22px #000a, 0 0 22px #88b7ff42;
+}
+:root[data-theme="pearl"] :is(.icon-button, .save-card, .player-episode-controls button) svg {
+  color: #315485;
+  filter: drop-shadow(0 1px #fff);
+}
+:root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+  .audio-options button, .episode-buttons button, .filter-genres button,
+  .small-tabs button, .segmented button, .week-tabs button,
+  .player-episode-controls button, .drawer > button):hover {
+  border-color: #fff;
+  box-shadow: inset 0 2px #fff, inset 0 -2px #6284aeb3,
+    0 4px 3px #0008, 0 13px 25px #000a, 0 0 24px #a7ceff61;
+}
+:root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+  .audio-options button, .episode-buttons button, .filter-genres button,
+  .small-tabs button, .segmented button, .week-tabs button,
+  .player-episode-controls button):active {
+  transform: translateY(1px) scale(.98);
+  box-shadow: inset 0 4px 8px #516787a3, inset 0 1px #fff,
+    0 1px 2px #0009;
+}
+:root[data-theme="pearl"] :is(.desktop-nav, .universe-header nav, .subnav nav) a.active,
+:root[data-theme="pearl"] .drawer > a.active {
+  color: #102a53;
+  background: var(--opal-fill);
+  border-color: #dcecff99;
+  box-shadow: var(--opal-shadow);
+  -webkit-backdrop-filter: blur(14px) saturate(165%);
+  backdrop-filter: blur(14px) saturate(165%);
+}
+:root[data-theme="pearl"] :is(.desktop-nav, .universe-header nav, .subnav nav) a:not(.active):hover,
+:root[data-theme="pearl"] .drawer > a:not(.active):hover {
+  color: #fff;
+  background: #b7d5ff1b;
+  border-radius: 14px;
+  box-shadow: inset 0 1px #ffffff3b, 0 4px 14px #0006;
+}
+:root[data-theme="pearl"] :is(select, .mode-switcher select, .theme-picker select,
+  .reader-toolbar select, .hosted-controls select) {
+  color: var(--opal-ink);
+  -webkit-text-fill-color: var(--opal-ink);
+  color-scheme: light;
+  background: var(--opal-fill);
+  border-color: #dcecff99;
+  box-shadow: var(--opal-shadow);
+  -webkit-backdrop-filter: blur(14px) saturate(165%);
+  backdrop-filter: blur(14px) saturate(165%);
+}
+:root[data-theme="pearl"] body .mode-switcher select { color: var(--opal-ink); }
+:root[data-theme="pearl"] .mode-switcher::after { border-color: #254572; }
+:root[data-theme="pearl"] select option { color: #172538; background: #dce9f3cf; }
+@supports (appearance: base-select) {
+  :root[data-theme="pearl"] select::picker(select) {
+    color-scheme: dark;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 10px 4px;
+    scroll-padding-block: 10px;
+    max-height: min(440px, 70dvh);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  :root[data-theme="pearl"] select option {
+    color: #f3f7ff;
+    -webkit-text-fill-color: #f3f7ff;
+    background: linear-gradient(145deg, #7f9ec278, #162843bd);
+    border: 1px solid #ffffff70;
+    box-shadow: inset 0 1px #ffffff69, 0 5px 12px #0007;
+    margin: 2px 0;
+    font-weight: 650;
+    text-shadow: 0 1px 2px #06101f;
+    -webkit-backdrop-filter: blur(8px) saturate(145%);
+    backdrop-filter: blur(8px) saturate(145%);
+  }
+  :root[data-theme="pearl"] select option::checkmark { color: #f3f7ff; }
+  :root[data-theme="pearl"] select option:is(:hover, :focus-visible) {
+    color: #fff;
+    background: #5175a9b3;
+  }
+  :root[data-theme="pearl"] select option:checked {
+    color: #fff;
+    background: linear-gradient(145deg, #4d70aeaa, #1a315ac2);
+    border-color: #ffffffa8;
+  }
+}
+:root[data-theme="pearl"] :is(.landing-links a, .genre-cloud a,
+  .glass-app-icon, .filter-genres button, .drawer > a) {
+  color: var(--opal-ink);
+  background: var(--opal-fill);
+  border-color: #dcecff99;
+  box-shadow: var(--opal-shadow);
+  -webkit-backdrop-filter: blur(14px) saturate(165%);
+  backdrop-filter: blur(14px) saturate(165%);
+}
+:root[data-theme="pearl"] .drawer > a.active { color: #102a53; }
+:root[data-theme="pearl"] :is(.header-search, input, textarea,
+  .catalog-search, .search-modal input, .universe-filters input) {
+  color: var(--pearl-ink);
+  background: linear-gradient(145deg, #819bb04d, #131d2c8a);
+  border: 1px solid #b9d5f275;
+  box-shadow: inset 0 1px #ffffff78, inset 0 -1px #000a, 0 6px 15px #0007;
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
+}
+:root[data-theme="pearl"] :is(.glass-widget, .discovery-strip, .top-ten,
+  .genre-panel, .schedule-panel, .settings-panel, .filter-panel, .search-modal,
+  .drawer-modal, .book-detail, .episode-panel, .server-panel, .reader-toolbar,
+  .chapter-narration, .landing-overview, .closing-banner, .schedule-list > a,
+  .reading-history > a, .episode-list, .subtitle-panel, .stream-toolbar,
+  .hosted-controls, .reader-bottom, .toast, .network-state, .empty,
+  .listen-features article, .direct-collection-card) {
+  background: linear-gradient(155deg, #a8c3dc3d 0%, #40577570 34%, #101827ae 100%);
+  border-color: #c6dfff59;
+  box-shadow: inset 0 1px #ffffff63, inset 0 -1px #0009,
+    0 12px 30px #0008, 0 28px 42px #0004;
+  -webkit-backdrop-filter: blur(17px) saturate(150%);
+  backdrop-filter: blur(17px) saturate(150%);
+}
+:root[data-theme="pearl"] :is(.poster-wrap, .universe-card > div) {
+  box-shadow: inset 0 1px #fff8, 0 9px 22px #000a, 0 0 0 1px #c9e1ff5c;
+}
+:root[data-theme="pearl"] :is(.quality, .universe-card span) {
+  background: linear-gradient(145deg, #cfdeed78, #152238a6);
+  border: 1px solid #e4f4ff78;
+  box-shadow: inset 0 1px #ffffff7d, 0 5px 12px #0008;
+  -webkit-backdrop-filter: blur(9px) saturate(150%);
+  backdrop-filter: blur(9px) saturate(150%);
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :root[data-theme="pearl"] :is(.poster-wrap, .universe-card > div) {
+    transition: transform .32s cubic-bezier(.2,.8,.2,1), box-shadow .32s ease;
+  }
+  :root[data-theme="pearl"] :is(.anime-card, .universe-card):hover :is(.poster-wrap, .universe-card > div) {
+    transform: translateY(-3px);
+    box-shadow: inset 0 1px #fff8, 0 16px 30px #000c, 0 0 0 1px #d6eaff93;
+  }
+}
+:root[data-theme="pearl"] .hero-pagination button { background: transparent; border: 0; box-shadow: none; }
+:root[data-theme="pearl"] body .header-search {
+  color: var(--opal-ink);
+  background: var(--opal-fill);
+  border-color: #dcecff99;
+  box-shadow: var(--opal-shadow);
+  -webkit-backdrop-filter: blur(14px) saturate(165%);
+  backdrop-filter: blur(14px) saturate(165%);
+}
+:root[data-theme="pearl"] .header-search :is(svg, span) { color: var(--opal-ink); }
+:root[data-theme="pearl"] :is(.subnav nav a, .universe-header nav a) {
+  border-radius: 13px;
+  padding-inline: 12px;
+  background: linear-gradient(145deg, #ffffff19, #90b8e00b);
+  box-shadow: inset 0 1px #ffffff35, 0 3px 8px #0003;
+  -webkit-backdrop-filter: blur(8px) saturate(145%);
+  backdrop-filter: blur(8px) saturate(145%);
+  transition: color .24s ease, background-color .24s ease, box-shadow .24s ease,
+    transform .24s cubic-bezier(.2,.8,.2,1);
+}
+:root[data-theme="pearl"] :is(.subnav nav a, .universe-header nav a):hover {
+  color: #fff;
+  background: #c0dfff1e;
+  box-shadow: inset 0 1px #ffffff5e, 0 6px 14px #0007;
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  :root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+    .header-search, .audio-options button, .episode-buttons button,
+    .small-tabs button, .segmented button, .week-tabs button,
+    .player-episode-controls button) {
+    position: relative;
+    overflow: hidden;
+  }
+  :root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+    .header-search, .audio-options button, .episode-buttons button,
+    .small-tabs button, .segmented button, .week-tabs button,
+    .player-episode-controls button)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(108deg, transparent 25%, #fff9 48%, transparent 67%);
+    transform: translateX(-130%);
+    transition: transform .55s cubic-bezier(.2,.8,.2,1);
+  }
+  :root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+    .header-search, .audio-options button, .episode-buttons button,
+    .small-tabs button, .segmented button, .week-tabs button,
+    .player-episode-controls button):hover::after { transform: translateX(130%); }
+}
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+    .audio-options button, .episode-buttons button, .filter-genres button,
+    .small-tabs button, .segmented button, .week-tabs button,
+    .player-episode-controls button):hover { transform: translateY(-3px); }
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  :root[data-theme="pearl"] :is(.header, .universe-header, .subnav, .drawer-modal,
+    .settings-panel, select) {
+    -webkit-backdrop-filter: blur(9px) saturate(135%);
+    backdrop-filter: blur(9px) saturate(135%);
+  }
+  :root[data-theme="pearl"] :is(.button, .icon-button, .watchlist-button,
+    .language-toggle, .small-tabs button, .episode-buttons button,
+    .player-episode-controls button, .header-search, .glass-widget,
+    .reader-toolbar, .book-detail, .filter-panel, .search-modal) {
+    -webkit-backdrop-filter: blur(8px) saturate(145%);
+    backdrop-filter: blur(8px) saturate(145%);
+  }
+  :root[data-theme="pearl"] body :is(.mode-switcher select, .theme-picker select,
+    .reader-toolbar select, .hosted-controls select) {
+    -webkit-backdrop-filter: blur(8px) saturate(145%);
+    backdrop-filter: blur(8px) saturate(145%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="pearl"] *,
+  :root[data-theme="pearl"] *::before,
+  :root[data-theme="pearl"] *::after { transition: none !important; animation: none !important; }
+}
+
+/* Palette controls live above menus and retain the Pearl Glass finish. */
+:root[data-theme="pearl"] .pearl-palette-trigger {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 14px;
+  color: #13253c;
+  background: var(--opal-fill);
+  border: 1px solid #dcecff99;
+  border-radius: 999px;
+  box-shadow: var(--opal-shadow);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+:root[data-theme="pearl"] .pearl-palette-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 2px #fff, 0 10px 23px #000a, 0 0 18px #a7ceff61;
+}
+.pearl-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: #030815b8;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: fade-in .25s ease both;
+}
+.pearl-palette-dialog {
+  width: min(100%, 630px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: clamp(20px, 4vw, 32px);
+  color: #f5f8ff;
+  background: linear-gradient(145deg, #a8c3dc52, #40577588 32%, #101827e3);
+  border: 1px solid #e2f1ff83;
+  border-radius: 30px;
+  box-shadow: inset 0 1px #ffffffa3, inset 0 -2px #0009,
+    0 26px 70px #000c, 0 0 40px #b3d2ff36;
+  -webkit-backdrop-filter: blur(22px) saturate(155%);
+  backdrop-filter: blur(22px) saturate(155%);
+  animation: content-in .32s cubic-bezier(.2,.8,.2,1) both;
+}
+.pearl-palette-head { display: flex; gap: 16px; justify-content: space-between; align-items: flex-start; }
+.pearl-palette-kicker { font-size: 10px; letter-spacing: .22em; font-weight: 800; color: #b9d5ff; }
+.pearl-palette-head h2 { margin: 6px 0 4px; font-size: clamp(22px, 5vw, 29px); line-height: 1.2; }
+.pearl-palette-head p { margin: 0; color: #c5d2e4; font-size: 13px; }
+.pearl-palette-close {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  font-size: 25px;
+  line-height: 1;
+  color: #14243a;
+  background: var(--opal-fill);
+  border: 1px solid #dcecff99;
+  border-radius: 50%;
+  box-shadow: var(--opal-shadow);
+}
+.pearl-palette-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 25px 0; }
+.pearl-palette-option {
+  min-width: 0;
+  padding: 10px;
+  text-align: left;
+  color: #f4f7ff;
+  background: #e4f2ff12;
+  border: 1px solid #d9ecff4b;
+  border-radius: 20px;
+  box-shadow: inset 0 1px #ffffff3b, 0 9px 18px #0005;
+  transition: transform .26s cubic-bezier(.2,.8,.2,1), border-color .26s ease,
+    box-shadow .26s ease;
+}
+.pearl-palette-option:hover { transform: translateY(-3px); border-color: #fff9; box-shadow: inset 0 1px #fff8, 0 14px 24px #0008; }
+:root[data-theme="pearl"] body .pearl-palette-dialog .pearl-palette-option[aria-pressed="true"] {
+  color: #f4f7ff;
+  background: linear-gradient(145deg, #4b6a998f, #14233bbd);
+  border-color: #e9f5ff;
+  box-shadow: inset 0 1px #fff9, 0 0 0 2px #a8c9ff8c, 0 14px 24px #0008;
+}
+.pearl-palette-swatch { display: block; position: relative; overflow: hidden; height: 74px; border-radius: 13px; border: 1px solid #ffffff77; box-shadow: inset 0 1px #ffffff8a, 0 5px 12px #0006; }
+.pearl-palette-swatch::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 30% 30%, #ffffff55, transparent 56%);
+  animation: pearl-glow-drift 10s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.pearl-palette-option[data-palette="default"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #618ac5, transparent 70%), radial-gradient(at 90% 60%, #765eab, transparent 65%), #0b1220; }
+.pearl-palette-option[data-palette="aurora"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #30b2d6, transparent 70%), radial-gradient(at 90% 60%, #5574dc, transparent 65%), #0a1826; }
+.pearl-palette-option[data-palette="amethyst"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #8663d3, transparent 70%), radial-gradient(at 90% 60%, #7657c3, transparent 65%), #171128; }
+.pearl-palette-option[data-palette="ember"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #e2818d, transparent 70%), radial-gradient(at 90% 60%, #dca155, transparent 65%), #21131c; }
+.pearl-palette-option[data-palette="jade"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #39bfa9, transparent 70%), radial-gradient(at 90% 60%, #5bab82, transparent 65%), #0b1b1d; }
+.pearl-palette-option[data-palette="prism"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #78c9ef, transparent 70%), radial-gradient(at 92% 70%, #df7cdd, transparent 65%), #141d31; }
+.pearl-palette-option[data-palette="tidal"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #1aa6bb, transparent 70%), radial-gradient(at 90% 60%, #366ad6, transparent 65%), #071a24; }
+.pearl-palette-option[data-palette="solstice"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #eb9b57, transparent 70%), radial-gradient(at 90% 60%, #d55c9a, transparent 65%), #25151b; }
+.pearl-palette-option[data-palette="nebula"] .pearl-palette-swatch { background: radial-gradient(at 15% 10%, #8069da, transparent 70%), radial-gradient(at 90% 60%, #d967bd, transparent 65%), #121328; }
+.pearl-palette-name { display: block; margin: 9px 3px 0; font-weight: 750; font-size: 13px; }
+.pearl-palette-description { display: block; margin: 2px 3px 3px; color: #bac9dd; font-size: 11px; }
+.pearl-palette-done {
+  min-width: 110px;
+  min-height: 44px;
+  padding: 10px 20px;
+  color: #14243a;
+  background: var(--opal-fill);
+  border: 1px solid #dcecff99;
+  border-radius: 999px;
+  box-shadow: var(--opal-shadow);
+}
+.pearl-palette-backdrop :is(button):focus-visible { outline: 3px solid #d6eaff; outline-offset: 3px; }
+@media (max-width: 600px) {
+  :root[data-theme="pearl"] .theme-picker { flex-wrap: wrap; }
+  :root[data-theme="pearl"] .theme-picker select { flex: 1 1 125px; }
+  .pearl-palette-dialog { border-radius: 24px; max-height: calc(100dvh - 32px); }
+  .pearl-palette-grid { gap: 10px; }
+  .pearl-palette-swatch { height: 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pearl-palette-backdrop, .pearl-palette-dialog, .pearl-palette-option, .pearl-palette-swatch::after { animation: none; transition: none; }
+}
+
+/* Give labels and icons a clear inset from the raised glass edge. */
+:root[data-theme="pearl"] :is(.button, .watchlist-button, .settings-panel button,
+  .audio-options button, .episode-buttons button, .small-tabs button,
+  .segmented button, .week-tabs button, .filter-genres button,
+  .reader-bottom button, .chapter-list a, .landing-links a,
+  .drawer > a, .drawer > button) {
+  min-height: 44px;
+  padding-inline: 18px;
+  line-height: 1.45;
+}
+:root[data-theme="pearl"] :is(.button, .watchlist-button,
+  .audio-options button, .episode-buttons button, .small-tabs button,
+  .segmented button, .week-tabs button, .filter-genres button,
+  .settings-panel button, .pearl-palette-trigger, .pearl-palette-done) {
+  font-weight: 650;
+}
+:root[data-theme="pearl"] :is(.desktop-nav a, .subnav nav a,
+  .universe-header nav a) { font-weight: 600; }
+:root[data-theme="pearl"] :is(.desktop-nav a.active, .subnav nav a.active,
+  .universe-header nav a.active) { color: #07182c; font-weight: 700; }
+:root[data-theme="pearl"] :is(.icon-button, .language-toggle,
+  .header-filter, .player-episode-controls button) {
+  min-width: 44px;
+  min-height: 44px;
+}
+:root[data-theme="pearl"] :is(.desktop-nav a, .subnav nav a,
+  .universe-header nav a) { padding-inline: 14px; }
+:root[data-theme="pearl"] :is(.mode-switcher select, .theme-picker select) {
+  min-height: 46px;
+  padding-left: 18px;
+  padding-right: 38px;
+}
+:root[data-theme="pearl"] select option { padding: 12px 15px; }
+.pearl-palette-option { padding: 13px; }
+
+@media (min-width: 701px) and (max-width: 1500px) {
+  :root[data-theme="pearl"] .header-inner > .header-search {
+    flex: 0 0 46px;
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    padding: 0;
+    justify-content: center;
+  }
+  :root[data-theme="pearl"] .header-search :is(span, kbd) { display: none; }
+}
+
+@media (max-width: 600px) {
+  :root[data-theme="pearl"] .universe-header {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 10px;
+  }
+  :root[data-theme="pearl"] .universe-header > .logo {
+    grid-column: 1;
+    grid-row: 1;
+    width: max-content;
+    max-width: 100%;
+  }
+  :root[data-theme="pearl"] .universe-header > .theme-picker {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    min-width: 0;
+  }
+  :root[data-theme="pearl"] .universe-header > .theme-picker select {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+  :root[data-theme="pearl"] .universe-header > .mode-switcher {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  :root[data-theme="pearl"] .universe-header > nav {
+    grid-column: 1;
+    grid-row: 4;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 3px 0 8px;
+    scrollbar-width: none;
+  }
+  :root[data-theme="pearl"] .universe-header > nav::-webkit-scrollbar { display: none; }
+  :root[data-theme="pearl"] .universe-header > nav a { flex: 0 0 auto; min-height: 44px; }
+  :root[data-theme="pearl"] .header-tools .watchlist-button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Selected controls use the current content mode's accent, not the neutral glass. */
+:root[data-theme="pearl"] :is(.button, .watchlist-button,
+  .settings-panel button, .audio-options button, .episode-buttons button,
+  .small-tabs button, .segmented button, .week-tabs button,
+  .filter-genres button, .player-episode-controls button) { font-weight: 700; }
+:root[data-theme="pearl"] :is(.mode-switcher select, .theme-picker select) { font-weight: 700; }
+:root[data-theme="pearl"] :is(.icon-button, .header-filter, .watchlist-button,
+  .header-search, .save-card, .glass-app-icon, .button,
+  .player-episode-controls button, .external-fullscreen-button,
+  .fullscreen-fit-button, .exit-player-fullscreen) svg {
+  stroke-width: 2.4;
+}
+:root[data-theme="pearl"] .settings-panel {
+  background: linear-gradient(150deg, #526d89ec, #15263beF 56%, #0d1929f2);
+  border-color: #c9dfff91;
+  box-shadow: inset 0 1px #ffffff91, 0 18px 38px #000b;
+}
+:root[data-theme="pearl"] .settings-panel h3 { color: #f8fbff; }
+:root[data-theme="pearl"] .settings-panel p { color: #d9e6f5; }
+:root[data-theme="pearl"] :is(.audio-options button.active,
+  .episode-buttons button.active, .episode-buttons button[aria-current="true"],
+  .filter-genres button.selected, .week-tabs button.active,
+  .small-tabs button.active, .segmented button.active,
+  .settings-panel button.selected,
+  button[aria-pressed="true"]:not(.pearl-palette-option)),
+:root[data-theme="pearl"] :is(.desktop-nav, .universe-header nav,
+  .subnav nav) a.active,
+:root[data-theme="pearl"] .drawer > a.active {
+  color: #f8fbff;
+  -webkit-text-fill-color: #f8fbff;
+  background: radial-gradient(ellipse 90% 120% at 25% -10%, #ffffff5c, transparent 74%),
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--brand-color) 42%, #27456f),
+      color-mix(in srgb, var(--brand-color) 16%, #102846));
+  border-color: color-mix(in srgb, var(--brand-color) 65%, #e5f2ff);
+  box-shadow: inset 0 1px #ffffffbd, inset 0 -2px #071324a8,
+    0 5px 11px #0008, 0 0 18px color-mix(in srgb, var(--brand-color) 45%, transparent);
+  text-shadow: 0 1px 2px #071426;
+  font-weight: 800;
+}
+:root[data-theme="pearl"] :is(.audio-options button.active,
+  .episode-buttons button.active, .small-tabs button.active,
+  .segmented button.active, .week-tabs button.active,
+  .settings-panel button.selected) svg {
+  color: #fff;
+  filter: drop-shadow(0 1px 1px #071426);
+}
+@supports (appearance: base-select) {
+  :root[data-theme="pearl"] select option:checked {
+    background: linear-gradient(145deg,
+      color-mix(in srgb, var(--brand-color) 42%, #27456f),
+      color-mix(in srgb, var(--brand-color) 16%, #102846));
+    border-color: color-mix(in srgb, var(--brand-color) 65%, #e5f2ff);
+  }
+}

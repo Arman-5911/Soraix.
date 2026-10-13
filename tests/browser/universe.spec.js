@@ -180,6 +180,61 @@ test("global mode changes catalogue and survives refresh on mobile", async ({
     )
     .toBe(true);
 });
+test("SoraiX mode label stays bold and readable across content modes", async ({ page }) => {
+  await page.goto("/");
+  const label = page.locator(".soraix-brand .brand-mode").first();
+  await expect(label).toHaveText("Manga");
+  await expect(label).toHaveCSS("font-weight", "800");
+  await expect(label).toHaveCSS("font-family", 'Manrope, sans-serif');
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.getByRole("combobox", { name: "Content mode", exact: true }).selectOption("manhwa");
+  await expect(label).toHaveText("Manhwa");
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+test("footer stays after the overview and at the end on desktop and mobile", async ({ page }) => {
+  await page.goto("/watchlist");
+  await expect(page.locator(".app-shell > footer")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.querySelector("#site-overview")?.parentElement?.id)).toBe("overview-slot");
+  await expect.poll(() => page.evaluate(() => document.querySelector("#overview-slot")?.nextElementSibling?.tagName)).toBe("FOOTER");
+  await expect.poll(() => page.evaluate(() => Math.round(document.querySelector(".app-shell > footer").getBoundingClientRect().bottom) >= innerHeight)).toBe(true);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("combobox", { name: "Content mode", exact: true }).selectOption("manga");
+  await expect(page.locator(".app-shell > footer.universe-footer")).toBeVisible();
+  await expect(page.locator(".universe-footer nav a")).toHaveCount(3);
+});
+test("anime guide stays directly above the footer after route navigation", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("soraix-content-mode", '"anime"'));
+  await page.reload();
+  await expect(page.locator("#site-overview .landing-overview")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.querySelector("#overview-slot")?.previousElementSibling?.id)).toBe("main");
+  await page.locator(".footer-top").getByRole("link", { name: "Movies" }).click();
+  await expect(page).toHaveURL(/\/movies$/);
+  await expect(page.locator("#site-overview .landing-overview")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.querySelector("#overview-slot")?.nextElementSibling?.tagName)).toBe("FOOTER");
+});
+test("anime category bar stays below header without page overflow", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("soraix-content-mode", '"anime"'));
+  await page.reload();
+  for (const theme of ["dim", "glass", "pearl"]) {
+    await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+    for (const width of [1440, 1024, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      const layout = await page.evaluate(() => {
+        const header = document.querySelector(".app-shell > .header").getBoundingClientRect();
+        const bar = document.querySelector(".app-shell > .subnav").getBoundingClientRect();
+        return { gap: bar.top - header.bottom, barWidth: bar.width, pageWidth: document.documentElement.scrollWidth };
+      });
+      expect(layout.gap).toBeGreaterThanOrEqual(-1);
+      expect(layout.gap).toBeLessThanOrEqual(12);
+      expect(layout.barWidth).toBeLessThanOrEqual(width + 1);
+      expect(layout.pageWidth).toBeLessThanOrEqual(width + 1);
+      await expect(page.locator(".subnav nav").getByRole("link", { name: "TV Series" })).toBeVisible();
+    }
+  }
+});
 test("reader saves progress, supports layouts, chapter navigation and library", async ({
   page,
 }) => {
@@ -223,6 +278,47 @@ test("reader saves progress, supports layouts, chapter navigation and library", 
   );
   await page.goto("/watchlist");
   await expect(page.locator(".universe-card")).toContainText("A New World");
+});
+test("reader fullscreen hides controls and restores them on page tap", async ({ page }) => {
+  await page.goto("/read/30104/chapter-a");
+  await page.getByRole("button", { name: "Enter reader fullscreen" }).click();
+  await expect(page.locator(".reader")).toHaveClass(/reader-immersive/);
+  await expect(page.locator(".reader")).toHaveClass(/reader-controls-hidden/, { timeout: 6000 });
+  await page.mouse.move(300, 300);
+  await expect(page.locator(".reader")).toHaveClass(/reader-controls-hidden/);
+  await page.locator(".reader-pages img").first().click();
+  await expect(page.locator(".reader")).not.toHaveClass(/reader-controls-hidden/);
+  await page.getByRole("button", { name: "Next page", exact: true }).click();
+  await expect(page.locator(".reader-bottom")).toContainText("2 / 4");
+  await page.getByRole("button", { name: "Exit reader fullscreen" }).click();
+  await expect(page.locator(".reader")).not.toHaveClass(/reader-immersive/);
+});
+test("reader Fill page uses available width without cropping or excessive upscaling", async ({ page }) => {
+  await page.goto("/read/30104/chapter-a");
+  await page.getByLabel("Reading layout").selectOption("single");
+  await page.getByRole("button", { name: "Fill reader page" }).click();
+  const image = page.locator(".reader-pages img");
+  await expect(page.locator(".reader-pages")).toHaveClass(/reader-pages-fill/);
+  await expect.poll(() => image.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+  const sizes = await image.evaluate((img) => ({ width: img.getBoundingClientRect().width, natural: img.naturalWidth, fit: getComputedStyle(img).objectFit }));
+  expect(sizes.width).toBeLessThanOrEqual(sizes.natural * 1.25 + 1);
+  expect(sizes.fit).toBe("contain");
+  await page.getByRole("button", { name: "Fit reader page" }).click();
+  await expect(page.locator(".reader-pages")).not.toHaveClass(/reader-pages-fill/);
+});
+test("reader full-window fallback fits mobile and exits with Escape", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/read/30104/chapter-a");
+  await expect(page.locator(".reader")).toBeVisible();
+  await page.evaluate(() => {
+    document.querySelector(".reader").requestFullscreen = () => Promise.reject(new Error("Unavailable"));
+  });
+  await page.getByRole("button", { name: "Enter reader fullscreen" }).click();
+  await expect(page.locator(".reader")).toHaveClass(/reader-fullwindow/);
+  await expect.poll(() => page.locator(".reader").evaluate((el) => Math.round(el.getBoundingClientRect().height))).toBe(812);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".reader")).not.toHaveClass(/reader-fullwindow/);
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe("");
 });
 test("adaptation links switch content mode", async ({ page }) => {
   await page.goto("/media/30104");

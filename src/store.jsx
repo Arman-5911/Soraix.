@@ -8,6 +8,7 @@ import React, {
   useMemo,
 } from "react";
 import { persistTitle } from "./services/catalog";
+import PearlPalette, { PEARL_PALETTES } from "./PearlPalette";
 const Context = createContext(null);
 export function readStore(key, fallback) {
   try {
@@ -50,8 +51,22 @@ export function AppProvider({ children }) {
     [watchlist, setWatchlist] = useLocal("watchlist", []),
     [history, setHistory] = useLocal("history", []),
     [recent, setRecent] = useLocal("searches", []),
-    [theme, setTheme] = useLocal("theme", "glass"),
+    [theme, setStoredTheme] = useLocal("theme", "glass"),
+    [storedPearlPalette, setPearlPalette] = useLocal("pearl-palette", "default"),
+    [paletteOpen, setPaletteOpen] = useState(false),
     [toast, setToast] = useState("");
+  const pearlPalette = PEARL_PALETTES.some(([id]) => id === storedPearlPalette)
+    ? storedPearlPalette : "default";
+  const closePearlPalette = useCallback(() => setPaletteOpen(false), []);
+  const openPearlPalette = useCallback(() => setPaletteOpen(true), []);
+  const choosePearlPalette = useCallback((next) => {
+    setPearlPalette(next);
+    setPaletteOpen(false);
+  }, [setPearlPalette]);
+  const setTheme = useCallback((next) => {
+    setStoredTheme(next);
+    setPaletteOpen(next === "pearl");
+  }, [setStoredTheme]);
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(""), 3200);
@@ -61,6 +76,9 @@ export function AppProvider({ children }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.pearlPalette = pearlPalette;
+  }, [pearlPalette]);
   const notify = useCallback((message) => setToast(message), []);
   const toggleWatchlist = useCallback((id) => {
     persistTitle(id);
@@ -80,15 +98,21 @@ export function AppProvider({ children }) {
     a?.title?.[language === "JP" ? "romaji" : "english"] || "Unknown title", [language]);
   const contextValue = useMemo(() => ({
     language, setLanguage, watchlist, setWatchlist, history, setHistory,
-    recent, setRecent, theme, setTheme, notify, toggleWatchlist,
+    recent, setRecent, theme, setTheme, pearlPalette, openPearlPalette,
+    notify, toggleWatchlist,
     saveProgress, title,
   }), [language, setLanguage, watchlist, setWatchlist, history, setHistory,
-    recent, setRecent, theme, setTheme, notify, toggleWatchlist, saveProgress, title]);
+    recent, setRecent, theme, setTheme, pearlPalette, openPearlPalette,
+    notify, toggleWatchlist, saveProgress, title]);
   return (
     <Context.Provider
       value={contextValue}
     >
       {children}
+      {theme === "pearl" && paletteOpen && (
+        <PearlPalette value={pearlPalette} onChange={choosePearlPalette}
+          onClose={closePearlPalette} />
+      )}
       {toast && (
         <div className="toast" role="status">
           <span>✓</span>

@@ -390,7 +390,10 @@ export function Header() {
               <button
                 className={theme === t ? "selected" : ""}
                 key={t}
-                onClick={() => setTheme(t)}
+                onClick={() => {
+                  setTheme(t);
+                  setSettings(false);
+                }}
               >
                 {name} {theme === t && <Check size={14} />}
               </button>

@@ -65,6 +65,35 @@ test.beforeEach(async ({ page }) => {
     });
   });
 });
+test("theme and Pearl color popups close after selection", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Appearance settings" }).click();
+  await page.locator(".settings-panel").getByRole("button", { name: /Pearl Glass/ }).click();
+  await expect(page.locator(".settings-panel")).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Choose your atmosphere" })).toBeVisible();
+  await page.getByRole("button", { name: /Aurora Blue and cyan/ }).click();
+  await expect(page.getByRole("dialog", { name: "Choose your atmosphere" })).toHaveCount(0);
+  await expect(page.locator("html")).toHaveAttribute("data-pearl-palette", "aurora");
+  await page.getByRole("button", { name: "Appearance settings" }).click();
+  await page.locator(".settings-panel").getByRole("button", { name: /Soft charcoal/ }).click();
+  await expect(page.locator(".settings-panel")).toHaveCount(0);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dim");
+});
+test("new Pearl gradients animate unless reduced motion is requested", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Appearance settings" }).click();
+  await page.locator(".settings-panel").getByRole("button", { name: /Pearl Glass/ }).click();
+  for (const name of ["Prism", "Tidal", "Solstice", "Nebula"]) {
+    await expect(page.getByRole("dialog", { name: "Choose your atmosphere" }).getByRole("button", { name: new RegExp(name) })).toBeVisible();
+  }
+  await page.getByRole("button", { name: /Prism Iridescent/ }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-pearl-palette", "prism");
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body, "::before").animationName)).toBe("none");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body, "::before").animationName)).toBe("pearl-glow-drift");
+});
 test("Hindi library filter persists through search and opens the available episode in Hindi", async ({
   page,
 }) => {

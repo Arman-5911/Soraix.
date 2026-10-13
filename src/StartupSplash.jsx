@@ -32,7 +32,7 @@ export default function StartupSplash({ children }) {
     };
   }, [visible, duration]);
   return <>
-    <div inert={visible ? true : undefined}>{children}</div>
+    <div className="app-shell" inert={visible ? true : undefined}>{children}</div>
     {visible && <div className="startup-splash" style={{ animationDelay: `${duration - 400}ms` }} role="dialog" aria-modal="true" aria-label="Welcome to SoraiX">
       <div className="splash-aurora" aria-hidden="true" />
       <div className="splash-orbit" aria-hidden="true" />

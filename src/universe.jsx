@@ -607,6 +607,7 @@ function ReaderSession({ id, chapterId }) {
   const [layout, setLayout] = useLocal("reader-layout", "vertical");
   const [direction, setDirection] = useLocal("reader-direction", "ltr");
   const [width, setWidth] = useLocal("reader-width", 850);
+  const [pageScale, setPageScale] = useLocal("reader-page-scale", "fit");
   const listenEntry = READ_LISTEN_ENABLED && params.get("listen") === "1";
   const listenQuery = listenEntry ? "&listen=1" : "";
   const titleUrl = `/media/${id}${listenEntry ? "?listen=1" : ""}`;
@@ -617,6 +618,64 @@ function ReaderSession({ id, chapterId }) {
   const [page, setPage] = useState(saved?.page || 0);
   const pages = live.data?.pages || [];
   const restored = useRef(false);
+  const readerRef = useRef(null);
+  const hideTimer = useRef(null);
+  const [immersive, setImmersive] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [fullscreenFallback, setFullscreenFallback] = useState(false);
+  const showControls = () => {
+    setControlsVisible(true);
+    clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setControlsVisible(false), 3500);
+  };
+  const exitImmersive = async () => {
+    if (document.fullscreenElement === readerRef.current) {
+      try { await document.exitFullscreen(); } catch { /* Browser may already have exited. */ }
+    }
+    setImmersive(false);
+    setFullscreenFallback(false);
+    setControlsVisible(true);
+    clearTimeout(hideTimer.current);
+  };
+  const enterImmersive = async () => {
+    setImmersive(true);
+    showControls();
+    try {
+      if (!readerRef.current?.requestFullscreen) throw new Error("Fullscreen unavailable");
+      await readerRef.current.requestFullscreen();
+    } catch {
+      setFullscreenFallback(true);
+    }
+  };
+  useEffect(() => {
+    if (!fullscreenFallback) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [fullscreenFallback]);
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      if (document.fullscreenElement !== readerRef.current && !fullscreenFallback) {
+        setImmersive(false);
+        setControlsVisible(true);
+        clearTimeout(hideTimer.current);
+      }
+    };
+    const onEscape = (event) => {
+      if (event.key === "Escape" && fullscreenFallback) exitImmersive();
+      else if (immersive && event.key === "Tab") showControls();
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    window.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      window.removeEventListener("keydown", onEscape);
+    };
+  }, [fullscreenFallback, immersive]);
+  useEffect(() => () => {
+    clearTimeout(hideTimer.current);
+    if (document.fullscreenElement === readerRef.current) document.exitFullscreen().catch(() => {});
+  }, []);
   const effective = ["vertical", "single", "double"].includes(layout)
     ? layout
     : "vertical";
@@ -694,10 +753,16 @@ function ReaderSession({ id, chapterId }) {
     return () => window.removeEventListener("keydown", key);
   }, [pages.length, direction, effective, current]);
   return (
-    <div className="reader">
-      <div className="reader-toolbar">
+    <div ref={readerRef} className={`reader${immersive ? " reader-immersive" : ""}${fullscreenFallback ? " reader-fullwindow" : ""}${immersive && !controlsVisible ? " reader-controls-hidden" : ""}`}>
+      <div className="reader-toolbar" inert={immersive && !controlsVisible ? true : undefined}>
         <Link to={titleUrl}>← Title</Link>
         <strong>{chapter?.title || "Reader"}</strong>
+        <button type="button" className="reader-fullscreen-button" aria-label={immersive ? "Exit reader fullscreen" : "Enter reader fullscreen"} aria-pressed={immersive} onClick={immersive ? exitImmersive : enterImmersive}>
+          {immersive ? "Exit full screen" : "Full screen"}
+        </button>
+        <button type="button" className="reader-scale-button" aria-label={pageScale === "fill" ? "Fit reader page" : "Fill reader page"} aria-pressed={pageScale === "fill"} title="Fill widens pages without cropping or excessive upscaling" onClick={() => setPageScale(pageScale === "fill" ? "fit" : "fill")}>
+          {pageScale === "fill" ? "Fit page" : "Fill page"}
+        </button>
         <span>{chapter?.provider || chapters.data?.provider || source}</span>
         {listenEntry && (
           <button aria-pressed={listen} onClick={() => setListen(!listen)}>
@@ -812,8 +877,9 @@ function ReaderSession({ id, chapterId }) {
       ) : (
         <>
           <div
-            className={`reader-pages ${effective}`}
-            style={{ maxWidth: width, direction }}
+            className={`reader-pages ${effective}${pageScale === "fill" ? " reader-pages-fill" : ""}`}
+            style={{ maxWidth: pageScale === "fill" ? "min(100%, 1200px)" : width, direction }}
+            onClick={() => { if (immersive) controlsVisible ? setControlsVisible(false) : showControls(); }}
           >
             {(effective === "vertical"
               ? pages
@@ -827,6 +893,7 @@ function ReaderSession({ id, chapterId }) {
                   src={url}
                   alt={`Page ${number + 1}`}
                   loading={number <= current + 1 ? "eager" : "lazy"}
+                  onLoad={(e) => e.currentTarget.style.setProperty("--reader-source-width", `${e.currentTarget.naturalWidth}px`)}
                   onError={(e) => {
                     setFailedPages(true);
                     e.currentTarget.alt = `Page ${number + 1} could not load. Reload chapter to retry.`;
@@ -835,7 +902,7 @@ function ReaderSession({ id, chapterId }) {
               );
             })}
           </div>
-          <div className="reader-bottom">
+          <div className="reader-bottom" inert={immersive && !controlsVisible ? true : undefined}>
             <button disabled={index <= 0} onClick={() => goChapter(-1)}>
               Previous chapter
             </button>
@@ -879,6 +946,7 @@ function ReaderSession({ id, chapterId }) {
               Next chapter
             </button>
           </div>
+          {immersive && !controlsVisible && <button type="button" className="reader-reveal" onClick={showControls} aria-label="Show reader controls">Show controls</button>}
         </>
       )}
     </div>

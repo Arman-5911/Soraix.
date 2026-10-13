@@ -1,9 +1,9 @@
 # SoraiX Android
 
-## Release 1.3 (version code 4)
+## Release 1.4 (version code 5)
 
 Run `powershell -ExecutionPolicy Bypass -File ./build-release.ps1` in this directory.
-Output: `artifacts/SoraiX.apk`. App label: **SoraiX**. Release debugging and WebView remote debugging are disabled; HTTP/mixed content and Android backup remain disabled.
+Output: `artifacts/SoraiX.apk`. App label: **SoraiX**. Release debugging and WebView remote debugging are disabled; HTTP/mixed content and Android cloud/device-transfer backup remain disabled.
 
 The internal application ID stays `app.soraix.preview` to preserve the existing identifier; it is not the user-facing name. This release uses a new private signing key instead of the old debug certificate. Android will not update the old debug installation in place: record/export any important local progress before uninstalling it. Do not uninstall automatically. Future releases must reuse the same release key.
 
